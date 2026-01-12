@@ -1,0 +1,80 @@
+/* ===== SEMÁFORO COMPONENT ===== */
+.semaforo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.semaforo-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    border: 3px solid;
+}
+
+/* Tamaños */
+.semaforo-sm .semaforo-indicator {
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-sm);
+    border-width: 2px;
+}
+
+.semaforo-md .semaforo-indicator {
+    width: 56px;
+    height: 56px;
+    font-size: var(--font-size-lg);
+}
+
+.semaforo-lg .semaforo-indicator {
+    width: 72px;
+    height: 72px;
+    font-size: var(--font-size-xl);
+}
+
+/* Colores - Danger (Riesgo: < 3.0) */
+.semaforo-danger .semaforo-indicator {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+/* Colores - Warning (Área de mejora: 3.0 - 3.9) */
+.semaforo-warning .semaforo-indicator {
+    background: var(--warning-bg);
+    color: var(--warning);
+    border-color: var(--warning);
+}
+
+/* Colores - Success (Fortaleza: >= 4.0) */
+.semaforo-success .semaforo-indicator {
+    background: var(--success-bg);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+/* Value */
+.semaforo-value {
+    line-height: 1;
+}
+
+/* Label */
+.semaforo-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.semaforo-danger .semaforo-label {
+    color: var(--danger);
+}
+
+.semaforo-warning .semaforo-label {
+    color: var(--warning);
+}
+
+.semaforo-success .semaforo-label {
+    color: var(--success);
+}

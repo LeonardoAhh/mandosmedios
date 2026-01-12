@@ -1,0 +1,412 @@
+/* ===== REPORTES ===== */
+.reportes-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header */
+.page-header {
+    margin-bottom: var(--space-6);
+}
+
+.page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: var(--font-size-md);
+}
+
+/* Layout */
+.reportes-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--space-6);
+}
+
+/* Sidebar */
+.evaluados-sidebar {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    height: fit-content;
+    position: sticky;
+    top: var(--space-4);
+}
+
+.sidebar-header {
+    margin-bottom: var(--space-4);
+}
+
+.sidebar-header h3 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3) 0;
+}
+
+.filter-select {
+    width: 100%;
+    padding: var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236e6e73' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-3) center;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.evaluados-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.evaluado-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+}
+
+.evaluado-item:hover {
+    background: var(--surface-hover);
+}
+
+.evaluado-item.active {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.evaluado-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-size-md);
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.evaluado-item.active .evaluado-avatar {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--text-inverse);
+}
+
+.evaluado-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.evaluado-name {
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.evaluado-item.active .evaluado-name {
+    color: var(--text-inverse);
+}
+
+.evaluado-nivel {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.evaluado-item.active .evaluado-nivel {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Main Content */
+.reporte-content {
+    min-width: 0;
+}
+
+/* Placeholder */
+.placeholder-card {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder {
+    text-align: center;
+    padding: var(--space-8);
+}
+
+.placeholder span {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: var(--space-4);
+}
+
+.placeholder h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.placeholder p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Report Detail */
+.reporte-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+/* Report Header Card */
+.reporte-header-card {
+    background: linear-gradient(135deg, var(--primary-light), rgba(0, 113, 227, 0.05));
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+}
+
+.reporte-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.reporte-evaluado {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.evaluado-avatar-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-full);
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--text-inverse);
+    flex-shrink: 0;
+}
+
+.reporte-evaluado h2 {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.reporte-evaluado p {
+    margin: var(--space-1) 0 0 0;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.reporte-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.stats-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+/* Radar Chart */
+.radar-container {
+    padding: var(--space-4) 0;
+}
+
+.radar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.radar-bar {
+    display: grid;
+    grid-template-columns: 160px 1fr 50px;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.radar-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.radar-track {
+    height: 10px;
+    background: var(--surface-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.radar-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-out;
+}
+
+.radar-value {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+/* Insights Grid */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+.insight-card {
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+}
+
+.insight-card h3 {
+    margin: 0 0 var(--space-4) 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.insight-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.insight-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3);
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+}
+
+.insight-name {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Comments */
+.comments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.comment-item {
+    padding: var(--space-4);
+    background: var(--surface-secondary);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-style: italic;
+    border-left: 3px solid var(--primary);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .reportes-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .evaluados-sidebar {
+        position: static;
+    }
+
+    .evaluados-list {
+        max-height: 200px;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .radar-bar {
+        grid-template-columns: 120px 1fr 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reporte-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .reporte-evaluado {
+        flex-direction: column;
+    }
+
+    .radar-bar {
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+    }
+
+    .radar-label {
+        text-align: left;
+    }
+
+    .radar-value {
+        text-align: left;
+    }
+}

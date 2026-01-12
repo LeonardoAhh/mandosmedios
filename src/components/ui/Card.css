@@ -1,0 +1,104 @@
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    transition: all var(--transition-fast);
+}
+
+.card:hover {
+    border-color: var(--border-light);
+}
+
+/* Variantes */
+.card-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+}
+
+.card-filled {
+    background: var(--surface-light);
+    border: none;
+}
+
+.card-glass {
+    background: rgba(28, 28, 30, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-white);
+}
+
+.card-success {
+    background: var(--success-bg);
+    border: 1px solid var(--success);
+}
+
+.card-warning {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning);
+}
+
+.card-danger {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger);
+}
+
+/* Clickable */
+.card-clickable {
+    cursor: pointer;
+}
+
+.card-clickable:hover {
+    transform: scale(0.99);
+    background: var(--surface-light);
+}
+
+.card-clickable:active {
+    transform: scale(0.98);
+}
+
+/* Padding variants */
+.card-compact {
+    padding: var(--space-3);
+}
+
+.card-spacious {
+    padding: var(--space-8);
+}
+
+/* Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.card-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-light);
+    border-radius: var(--radius-lg);
+    font-size: 1.25rem;
+}
+
+.card-header-content {
+    flex: 1;
+}
+
+.card-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.card-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: 2px;
+}

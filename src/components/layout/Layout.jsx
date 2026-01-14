@@ -95,7 +95,7 @@ const Layout = ({ children }) => {
                         </div>
                         <div className="logo-text">
                             <span className="logo-title">Evaluación</span>
-                            <span className="logo-subtitle">Viño Plastic</span>
+                            <span className="logo-subtitle">ViñoPlastic</span>
                         </div>
                     </div>
                 </div>

@@ -80,7 +80,7 @@ const LoginPage = () => {
                             </svg>
                         </div>
                         <h1 className="login-title">Evaluación de Liderazgo</h1>
-                        <p className="login-subtitle">Viño Plastic</p>
+                        <p className="login-subtitle">ViñoPlastic</p>
                     </div>
 
                     {/* Formulario */}

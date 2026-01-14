@@ -12,6 +12,7 @@ import GestionEncuestas from './pages/rh/GestionEncuestas'
 import GestionUsuarios from './pages/rh/GestionUsuarios'
 import GestionCompetencias from './pages/rh/GestionCompetencias'
 import Reportes from './pages/rh/Reportes'
+import GestionSupervisores from './pages/rh/GestionSupervisores'
 
 // Componente para redirigir según rol
 const RoleRedirect = () => {
@@ -112,6 +113,16 @@ function App() {
                             <ProtectedRoute requiredRole="rh">
                                 <Layout>
                                     <GestionUsuarios />
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/rh/supervisores"
+                        element={
+                            <ProtectedRoute requiredRole="rh">
+                                <Layout>
+                                    <GestionSupervisores />
                                 </Layout>
                             </ProtectedRoute>
                         }

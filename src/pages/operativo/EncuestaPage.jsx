@@ -1,61 +1,60 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-    getSurveyById,
-    getUserProfile,
     submitResponse,
+    getAllSupervisores,
     getCompetenciasDinamicas,
     PREGUNTA_ABIERTA
 } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import RatingScale from '../../components/ui/RatingScale'
-import Button from '../../components/ui/Button'
 import Loader from '../../components/ui/Loader'
 import './EncuestaPage.css'
 
 const EncuestaPage = () => {
-    const { surveyId, evaluadoId } = useParams()
+    const { evaluadoId } = useParams()
     const navigate = useNavigate()
     const { profile } = useAuth()
 
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
-    const [survey, setSurvey] = useState(null)
-    const [evaluado, setEvaluado] = useState(null)
+    const [supervisor, setSupervisor] = useState(null)
     const [respuestas, setRespuestas] = useState({})
     const [comentario, setComentario] = useState('')
     const [success, setSuccess] = useState(false)
     const [competencias, setCompetencias] = useState([])
 
-    const preguntaAbierta = PREGUNTA_ABIERTA[profile?.nivel || 'operativo']
+    // Pregunta abierta según nivel (por defecto operativo)
+    const preguntaAbierta = PREGUNTA_ABIERTA?.[profile?.nivel || 'operativo'] ||
+        '¿Qué debería mejorar este supervisor para apoyar mejor al equipo?'
 
     useEffect(() => {
         loadData()
-    }, [surveyId, evaluadoId, profile])
+    }, [evaluadoId, profile])
 
     const loadData = async () => {
         try {
+            // Cargar competencias dinámicas desde Firestore
             const nivel = profile?.nivel || 'operativo'
             const compResult = await getCompetenciasDinamicas(nivel)
             if (compResult.success) {
                 setCompetencias(compResult.data)
+            } else {
+                console.error('Error cargando competencias:', compResult.error)
             }
 
-            if (surveyId) {
-                const surveyResult = await getSurveyById(surveyId)
-                if (surveyResult.success) {
-                    setSurvey(surveyResult.data)
-                }
-            }
-
+            // Cargar información del supervisor
             if (evaluadoId) {
-                const evaluadoResult = await getUserProfile(evaluadoId)
-                if (evaluadoResult.success) {
-                    setEvaluado(evaluadoResult.data)
+                const result = await getAllSupervisores()
+                if (result.success) {
+                    const found = result.data.find(s => s.id === evaluadoId)
+                    if (found) {
+                        setSupervisor(found)
+                    }
                 }
             }
         } catch (error) {
-            console.error('Error loading survey:', error)
+            console.error('Error loading data:', error)
         } finally {
             setLoading(false)
         }
@@ -72,8 +71,12 @@ const EncuestaPage = () => {
         setSubmitting(true)
         try {
             const result = await submitResponse({
-                surveyId: surveyId || 'evaluacion-general',
-                evaluadoId: evaluadoId || evaluado?.id,
+                surveyId: 'evaluacion-mandos-medios',
+                evaluadoId: evaluadoId,
+                evaluadoName: supervisor?.name || 'Desconocido',
+                evaluadoDepartment: supervisor?.department || profile?.departamento,
+                turno: profile?.turnoActual || profile?.turnoFijo || 1,
+                departamento: profile?.departamento,
                 respuestas,
                 comentario
             })
@@ -84,6 +87,7 @@ const EncuestaPage = () => {
                 alert('Error al enviar: ' + result.error)
             }
         } catch (error) {
+            console.error('Error submitting:', error)
             alert('Error al enviar la evaluación')
         } finally {
             setSubmitting(false)
@@ -97,7 +101,7 @@ const EncuestaPage = () => {
     const remaining = totalQuestions - answeredCount
 
     if (loading) {
-        return <Loader fullScreen message="Cargando encuesta..." />
+        return <Loader fullScreen message="Cargando evaluación..." />
     }
 
     // Estado de éxito
@@ -109,8 +113,8 @@ const EncuestaPage = () => {
                         <div className="success-icon-wrapper">
                             <span className="success-icon">✓</span>
                         </div>
-                        <h2>¡Gracias!</h2>
-                        <p>Tu evaluación ha sido registrada de forma anónima.</p>
+                        <h2>¡Gracias por tu evaluación!</h2>
+                        <p>Tu evaluación a <strong>{supervisor?.name}</strong> ha sido registrada de forma anónima.</p>
                         <p className="success-note">
                             Tu opinión ayuda a mejorar el liderazgo en la organización.
                         </p>
@@ -130,13 +134,18 @@ const EncuestaPage = () => {
                 <button className="back-btn" onClick={() => navigate(-1)}>
                     ← Volver
                 </button>
-                <h1 className="encuesta-title">
-                    {survey?.titulo || 'Evaluación de Liderazgo'}
-                </h1>
-                {evaluado && (
-                    <p className="encuesta-evaluado">
-                        Evaluando a <strong>{evaluado.nombre}</strong>
-                    </p>
+                <h1 className="encuesta-title">Evaluación de Liderazgo</h1>
+                {supervisor && (
+                    <div className="encuesta-supervisor">
+                        <div className="supervisor-avatar">
+                            {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                        <div className="supervisor-details">
+                            <span className="evaluando-label">Evaluando a:</span>
+                            <span className="supervisor-name">{supervisor.name}</span>
+                            <span className="supervisor-position">{supervisor.position}</span>
+                        </div>
+                    </div>
                 )}
             </header>
 
@@ -162,7 +171,7 @@ const EncuestaPage = () => {
                 <p>Tus respuestas son <strong>100% anónimas</strong></p>
             </div>
 
-            {/* Preguntas */}
+            {/* Preguntas - Competencias dinámicas de Firestore */}
             <div className="questions-container">
                 {competencias.map((competencia, index) => (
                     <RatingScale

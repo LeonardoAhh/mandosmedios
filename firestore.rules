@@ -1,0 +1,73 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // =====================
+    // USUARIOS
+    // =====================
+    match /users/{userId} {
+      // Los usuarios pueden leer su propio perfil
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Solo admins (RH) pueden crear/modificar usuarios
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      
+      // RH puede leer todos los usuarios
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+    }
+    
+    // =====================
+    // SUPERVISORES
+    // =====================
+    match /supervisores/{supervisorId} {
+      // Todos los usuarios autenticados pueden leer supervisores
+      allow read: if request.auth != null;
+      
+      // Solo RH puede modificar supervisores
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+    }
+    
+    // =====================
+    // COMPETENCIAS (Preguntas)
+    // =====================
+    match /competencias/{competenciaId} {
+      // Todos los usuarios autenticados pueden leer competencias
+      allow read: if request.auth != null;
+      
+      // Solo RH puede modificar competencias
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+    }
+    
+    // =====================
+    // ENCUESTAS
+    // =====================
+    match /surveys/{surveyId} {
+      // Usuarios autenticados pueden leer encuestas activas
+      allow read: if request.auth != null;
+      
+      // Solo RH puede crear/modificar encuestas
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+    }
+    
+    // =====================
+    // RESPUESTAS (Evaluaciones)
+    // =====================
+    match /responses/{responseId} {
+      // Cualquier usuario autenticado puede crear respuestas (anónimas)
+      allow create: if request.auth != null;
+      
+      // Solo RH puede leer respuestas
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      
+      // No se pueden modificar ni eliminar respuestas
+      allow update, delete: if false;
+    }
+  }
+}

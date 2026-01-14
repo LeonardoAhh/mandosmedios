@@ -30,7 +30,8 @@ const GestionUsuarios = () => {
         nivel: 'operativo',
         departamento: '',
         puesto: '',
-        evaluaA: ''
+        evaluaA: '',
+        turnoFijo: 1
     })
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState('')
@@ -69,7 +70,8 @@ const GestionUsuarios = () => {
             nivel: 'operativo',
             departamento: '',
             puesto: '',
-            evaluaA: ''
+            evaluaA: '',
+            turnoFijo: 1
         })
         setEditingUser(null)
         setError('')
@@ -109,7 +111,9 @@ const GestionUsuarios = () => {
                 nivel: formData.nivel,
                 departamento: formData.departamento,
                 puesto: formData.puesto,
-                evaluaA: formData.evaluaA
+                evaluaA: formData.evaluaA,
+                turnoFijo: parseInt(formData.turnoFijo) || 1,
+                turnoActual: parseInt(formData.turnoFijo) || 1
             }
 
             const result = await registerUser(
@@ -151,7 +155,7 @@ const GestionUsuarios = () => {
         const confirmed = window.confirm(
             `¿Estás seguro de eliminar a "${userName}"?\n\nEsta acción no se puede deshacer.`
         )
-        
+
         if (!confirmed) return
 
         try {
@@ -175,13 +179,13 @@ const GestionUsuarios = () => {
     // Filtrado de usuarios
     const filteredUsers = users.filter(user => {
         // Filtro por categoría
-        const matchesFilter = 
+        const matchesFilter =
             filter === 'all' ||
             (filter === 'rh' && user.rol === 'rh') ||
             user.nivel === filter
 
         // Filtro por búsqueda
-        const matchesSearch = 
+        const matchesSearch =
             !searchTerm ||
             user.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -213,13 +217,13 @@ const GestionUsuarios = () => {
                         Administra los usuarios del sistema de evaluación
                     </p>
                 </div>
-                <button 
-                    className="gu-btn-new" 
+                <button
+                    className="gu-btn-new"
                     onClick={() => setShowModal(true)}
                     aria-label="Crear nuevo usuario"
                 >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                     <span>Nuevo Usuario</span>
                 </button>
@@ -249,7 +253,7 @@ const GestionUsuarios = () => {
             <div className="gu-controls">
                 <div className="gu-search-container">
                     <svg className="gu-search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM19 19l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                     <input
                         type="text"
@@ -259,13 +263,13 @@ const GestionUsuarios = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     {searchTerm && (
-                        <button 
+                        <button
                             className="gu-search-clear"
                             onClick={() => setSearchTerm('')}
                             aria-label="Limpiar búsqueda"
                         >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                             </svg>
                         </button>
                     )}
@@ -301,12 +305,12 @@ const GestionUsuarios = () => {
                 {filteredUsers.length === 0 ? (
                     <div className="gu-empty">
                         <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                            <circle cx="32" cy="24" r="8" stroke="currentColor" strokeWidth="2"/>
-                            <path d="M16 48c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <circle cx="32" cy="24" r="8" stroke="currentColor" strokeWidth="2" />
+                            <path d="M16 48c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                         <h3>No se encontraron usuarios</h3>
                         <p>
-                            {searchTerm 
+                            {searchTerm
                                 ? 'Intenta con otros términos de búsqueda'
                                 : 'No hay usuarios en esta categoría'
                             }
@@ -356,13 +360,13 @@ const GestionUsuarios = () => {
                                     <button
                                         className="gu-action-btn gu-action-role"
                                         onClick={() => handleRoleChange(
-                                            user.id, 
+                                            user.id,
                                             user.rol === 'rh' ? 'operativo' : 'rh'
                                         )}
                                         title={user.rol === 'rh' ? 'Quitar privilegios de administrador' : 'Hacer administrador'}
                                     >
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                            <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                         </svg>
                                         {user.rol === 'rh' ? 'Quitar Admin' : 'Hacer Admin'}
                                     </button>
@@ -372,7 +376,7 @@ const GestionUsuarios = () => {
                                         title="Eliminar usuario"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                            <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                         Eliminar
                                     </button>
@@ -389,13 +393,13 @@ const GestionUsuarios = () => {
                     <div className="gu-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="gu-modal-header">
                             <h2 className="gu-modal-title">Crear Nuevo Usuario</h2>
-                            <button 
-                                className="gu-modal-close" 
+                            <button
+                                className="gu-modal-close"
                                 onClick={handleCloseModal}
                                 aria-label="Cerrar modal"
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
                             </button>
                         </div>
@@ -404,8 +408,8 @@ const GestionUsuarios = () => {
                             {error && (
                                 <div className="gu-form-error">
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2"/>
-                                        <path d="M10 6v4M10 14h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                        <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" />
+                                        <path d="M10 6v4M10 14h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     </svg>
                                     <span>{error}</span>
                                 </div>
@@ -413,7 +417,7 @@ const GestionUsuarios = () => {
 
                             <div className="gu-form-section">
                                 <h3 className="gu-form-section-title">Información Personal</h3>
-                                
+
                                 <div className="gu-form-group">
                                     <Input
                                         label="Nombre completo"
@@ -450,7 +454,7 @@ const GestionUsuarios = () => {
 
                             <div className="gu-form-section">
                                 <h3 className="gu-form-section-title">Información Organizacional</h3>
-                                
+
                                 <div className="gu-form-row">
                                     <div className="gu-form-group">
                                         <label className="gu-form-label">Departamento</label>
@@ -505,7 +509,7 @@ const GestionUsuarios = () => {
 
                             <div className="gu-form-section">
                                 <h3 className="gu-form-section-title">Permisos del Sistema</h3>
-                                
+
                                 <div className="gu-form-group">
                                     <label className="gu-form-label">Rol en el sistema</label>
                                     <select
@@ -517,10 +521,35 @@ const GestionUsuarios = () => {
                                         <option value="rh">Administrador (RH)</option>
                                     </select>
                                     <p className="gu-form-help">
-                                        {formData.rol === 'rh' 
+                                        {formData.rol === 'rh'
                                             ? 'Tendrá acceso completo al sistema de gestión'
                                             : 'Podrá realizar y ver evaluaciones asignadas'
                                         }
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="gu-form-section">
+                                <h3 className="gu-form-section-title">Turno de Trabajo</h3>
+
+                                <div className="gu-form-group">
+                                    <label className="gu-form-label">Turno Fijo</label>
+                                    <select
+                                        className="gu-form-select"
+                                        value={formData.turnoFijo}
+                                        onChange={(e) => setFormData({ ...formData, turnoFijo: e.target.value })}
+                                    >
+                                        <option value="1">Turno 1</option>
+                                        <option value="2">Turno 2</option>
+                                        {formData.departamento !== 'CALIDAD' && (
+                                            <>
+                                                <option value="3">Turno 3</option>
+                                                <option value="4">Turno 4</option>
+                                            </>
+                                        )}
+                                    </select>
+                                    <p className="gu-form-help">
+                                        Este es el turno asignado al operador. Podrá cambiarlo temporalmente al iniciar sesión.
                                     </p>
                                 </div>
                             </div>
@@ -534,8 +563,8 @@ const GestionUsuarios = () => {
                                 >
                                     Cancelar
                                 </Button>
-                                <Button 
-                                    type="submit" 
+                                <Button
+                                    type="submit"
                                     loading={submitting}
                                     disabled={submitting}
                                 >

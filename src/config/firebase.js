@@ -58,17 +58,29 @@ export const registerUser = async (email, password, userData) => {
         const user = userCredential.user
 
         // Crear documento de usuario en Firestore
-        await setDoc(doc(db, 'users', user.uid), {
+        const userDoc = {
             email: user.email,
             nombre: userData.nombre,
             rol: userData.rol || 'operativo',
             nivel: userData.nivel || 'operativo',
-            area: userData.area || '',
-            evaluaA: userData.evaluaA || null,
+            departamento: userData.departamento || '',
+            turnoFijo: userData.turnoFijo || 1,
+            turnoActual: userData.turnoActual || userData.turnoFijo || 1,
             createdAt: serverTimestamp()
-        })
+        }
 
-        return { success: true, user }
+        // Solo agregar credentials si se proporcionan (para operativos)
+        if (userData.credentials) {
+            userDoc.credentials = {
+                password: userData.credentials.password,
+                generatedAt: serverTimestamp()
+            }
+            userDoc.employeeNumber = userData.employeeNumber
+        }
+
+        await setDoc(doc(db, 'users', user.uid), userDoc)
+
+        return { success: true, user, userData: userDoc }
     } catch (error) {
         return { success: false, error: getAuthErrorMessage(error.code) }
     }
@@ -91,6 +103,144 @@ export const getUserProfile = async (uid) => {
         }
         return { success: false, error: 'Usuario no encontrado' }
     } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// =====================
+// CREDENCIALES AUTOMÁTICAS
+// =====================
+
+// Generar credenciales automáticas para operativos
+export const generateUserCredentials = (employeeNumber) => {
+    const email = `operativo${employeeNumber}@vinoplastic.local`
+    const password = Math.random().toString(36).slice(-8).toUpperCase() + Math.random().toString(36).slice(-2).toLowerCase()
+    return { email, password: password.substring(0, 8) }
+}
+
+// Actualizar turno actual del usuario (se llama en cada login)
+export const updateUserCurrentShift = async (userId, turnoActual) => {
+    try {
+        await updateDoc(doc(db, 'users', userId), {
+            turnoActual,
+            lastLogin: serverTimestamp()
+        })
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// =====================
+// SUPERVISORES
+// =====================
+
+// Obtener todos los supervisores
+export const getAllSupervisores = async () => {
+    try {
+        const snapshot = await getDocs(collection(db, 'supervisores'))
+        const supervisores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        return { success: true, data: supervisores }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Obtener supervisores por departamento y turno
+export const getSupervisoresByDepartmentAndShift = async (department, shift) => {
+    try {
+        const q = query(
+            collection(db, 'supervisores'),
+            where('department', '==', department),
+            where('currentShift', '==', shift)
+        )
+        const snapshot = await getDocs(q)
+        const supervisores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        return { success: true, data: supervisores }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Actualizar turno de supervisor
+export const updateSupervisorShift = async (supervisorId, newShift) => {
+    try {
+        await updateDoc(doc(db, 'supervisores', supervisorId), {
+            currentShift: newShift,
+            updatedAt: serverTimestamp()
+        })
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Crear nuevo supervisor
+export const createSupervisor = async (supervisorData) => {
+    try {
+        const docRef = await addDoc(collection(db, 'supervisores'), {
+            ...supervisorData,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        })
+        return { success: true, id: docRef.id }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Actualizar supervisor
+export const updateSupervisor = async (supervisorId, updates) => {
+    try {
+        await updateDoc(doc(db, 'supervisores', supervisorId), {
+            ...updates,
+            updatedAt: serverTimestamp()
+        })
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Eliminar supervisor
+export const deleteSupervisor = async (supervisorId) => {
+    try {
+        await deleteDoc(doc(db, 'supervisores', supervisorId))
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Inicializar supervisores desde data.json (ejecutar una vez)
+export const initializeSupervisores = async (supervisoresData) => {
+    try {
+        // Verificar si ya existen supervisores
+        const existing = await getDocs(collection(db, 'supervisores'))
+        if (existing.docs.length > 0) {
+            return { success: true, message: 'Supervisores ya existen', count: existing.docs.length }
+        }
+
+        // Mapear data.json a estructura nueva
+        const supervisores = supervisoresData.map(sup => ({
+            name: sup.name,
+            position: sup.position,
+            department: sup.deparment, // nota: el JSON tiene typo "deparment"
+            currentShift: parseInt(sup.role), // convertir role a currentShift
+        }))
+
+        // Crear todos los supervisores
+        for (const sup of supervisores) {
+            await addDoc(collection(db, 'supervisores'), {
+                ...sup,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            })
+        }
+
+        return { success: true, message: 'Supervisores inicializados', count: supervisores.length }
+    } catch (error) {
+        console.error('Error initializing supervisores:', error)
         return { success: false, error: error.message }
     }
 }

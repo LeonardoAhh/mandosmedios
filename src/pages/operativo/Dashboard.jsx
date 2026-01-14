@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { getSurveys, getUsersByNivel, NIVELES } from '../../config/firebase'
-import Card from '../../components/ui/Card'
-import Button from '../../components/ui/Button'
+import { getSupervisoresByDepartmentAndShift } from '../../config/firebase'
 import Loader from '../../components/ui/Loader'
 import { useNavigate } from 'react-router-dom'
 import './DashboardOperativo.css'
@@ -10,9 +8,8 @@ import './DashboardOperativo.css'
 const Dashboard = () => {
     const { profile } = useAuth()
     const navigate = useNavigate()
-    const [surveys, setSurveys] = useState([])
+    const [supervisores, setSupervisores] = useState([])
     const [loading, setLoading] = useState(true)
-    const [evaluados, setEvaluados] = useState([])
     const [refreshing, setRefreshing] = useState(false)
 
     useEffect(() => {
@@ -29,30 +26,19 @@ const Dashboard = () => {
                 setLoading(true)
             }
 
-            // Obtener encuestas activas para el nivel del usuario
-            const nivelConfig = NIVELES.find(n => n.id === profile.nivel)
-            const nivelAEvaluar = nivelConfig?.evalua
+            // Cargar supervisores del turno actual y departamento del usuario
+            const turno = profile.turnoActual || profile.turnoFijo || 1
+            const departamento = profile.departamento || 'PRODUCCIÓN'
 
-            // Cargar TODAS las encuestas activas y filtrar en cliente
-            const surveysResult = await getSurveys({ activa: true })
+            console.log('Cargando supervisores:', { turno, departamento })
 
-            if (surveysResult.success) {
-                // Filtrar encuestas que coincidan con el nivel del usuario
-                const filteredSurveys = surveysResult.data.filter(survey =>
-                    survey.nivelEvaluador === profile.nivel
-                )
-                console.log('Encuestas encontradas:', surveysResult.data)
-                console.log('Nivel usuario:', profile.nivel)
-                console.log('Encuestas filtradas:', filteredSurveys)
-                setSurveys(filteredSurveys)
-            }
+            const result = await getSupervisoresByDepartmentAndShift(departamento, turno)
 
-            if (nivelAEvaluar) {
-                // Cargar posibles evaluados (mandos superiores)
-                const evaluadosResult = await getUsersByNivel(nivelAEvaluar)
-                if (evaluadosResult.success) {
-                    setEvaluados(evaluadosResult.data)
-                }
+            if (result.success) {
+                console.log('Supervisores encontrados:', result.data)
+                setSupervisores(result.data)
+            } else {
+                console.error('Error cargando supervisores:', result.error)
             }
         } catch (error) {
             console.error('Error loading data:', error)
@@ -66,12 +52,16 @@ const Dashboard = () => {
         loadData(true)
     }
 
-    if (loading) {
-        return <Loader fullScreen message="Cargando encuestas..." />
+    const handleEvaluar = (supervisor) => {
+        navigate(`/encuestas/evaluar/${supervisor.id}`)
     }
 
-    const nivelConfig = NIVELES.find(n => n.id === profile?.nivel)
+    if (loading) {
+        return <Loader fullScreen message="Cargando supervisores..." />
+    }
+
     const firstName = profile?.nombre?.split(' ')[0] || 'Usuario'
+    const turnoActual = profile?.turnoActual || profile?.turnoFijo || 1
 
     return (
         <div className="operativo-dashboard">
@@ -89,7 +79,7 @@ const Dashboard = () => {
                     className="op-btn-refresh"
                     onClick={handleRefresh}
                     disabled={refreshing}
-                    aria-label="Actualizar encuestas"
+                    aria-label="Actualizar supervisores"
                 >
                     <svg
                         width="20"
@@ -102,6 +92,26 @@ const Dashboard = () => {
                     </svg>
                 </button>
             </header>
+
+            {/* Info Banner - Turno y Departamento */}
+            <div className="op-turno-banner">
+                <div className="op-turno-info">
+                    <div className="op-turno-item">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+                            <path d="M10 5v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        <span>Turno {turnoActual}</span>
+                    </div>
+                    <div className="op-turno-divider"></div>
+                    <div className="op-turno-item">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M3 7h14M3 7v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7M3 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        <span>{profile?.departamento}</span>
+                    </div>
+                </div>
+            </div>
 
             {/* Info Card - Confidencialidad */}
             <div className="op-info-banner">
@@ -120,65 +130,51 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Encuestas Pendientes */}
+            {/* Lista de Supervisores */}
             <section className="op-section">
                 <div className="op-section-header">
                     <h2 className="op-section-title">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                        Encuestas Pendientes
+                        Supervisores a Evaluar
                     </h2>
-                    {surveys.length > 0 && (
-                        <span className="op-badge-count">{surveys.length}</span>
+                    {supervisores.length > 0 && (
+                        <span className="op-badge-count">{supervisores.length}</span>
                     )}
                 </div>
 
-                {surveys.length === 0 ? (
+                {supervisores.length === 0 ? (
                     <div className="op-empty-state">
                         <div className="op-empty-icon">
                             <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                                <circle cx="32" cy="32" r="28" fill="#d1fae5" />
-                                <path d="M20 32l8 8 16-16" stroke="#065f46" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                                <circle cx="32" cy="32" r="28" fill="#fef3c7" />
+                                <path d="M32 20v12M32 40h.01" stroke="#92400e" strokeWidth="4" strokeLinecap="round" />
                             </svg>
                         </div>
-                        <h3 className="op-empty-title">No hay encuestas pendientes</h3>
+                        <h3 className="op-empty-title">No hay supervisores en tu turno</h3>
                         <p className="op-empty-text">
-                            Estás al día con tus evaluaciones. Te notificaremos cuando haya nuevas evaluaciones disponibles.
+                            No encontramos supervisores asignados al turno {turnoActual} de {profile?.departamento}.
+                            Si crees que esto es un error, contacta a Recursos Humanos.
                         </p>
                     </div>
                 ) : (
-                    <div className="op-surveys-grid">
-                        {surveys.map((survey) => (
+                    <div className="op-supervisores-grid">
+                        {supervisores.map((supervisor) => (
                             <div
-                                key={survey.id}
-                                className="op-survey-card"
-                                onClick={() => navigate(`/encuestas/${survey.id}`)}
+                                key={supervisor.id}
+                                className="op-supervisor-card"
+                                onClick={() => handleEvaluar(supervisor)}
                             >
-                                <div className="op-survey-header">
-                                    <span className="op-survey-badge">Nueva</span>
-                                    <div className="op-survey-meta-icons">
-                                        <span className="op-survey-meta-item" title="Competencias a evaluar">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                            </svg>
-                                            {survey.competencias?.length || 10}
-                                        </span>
-                                        <span className="op-survey-meta-item" title="Tiempo estimado">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" />
-                                                <path d="M8 4v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                            </svg>
-                                            ~5 min
-                                        </span>
-                                    </div>
+                                <div className="op-supervisor-avatar">
+                                    {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
                                 </div>
-
-                                <h3 className="op-survey-title">{survey.titulo}</h3>
-                                <p className="op-survey-description">{survey.descripcion}</p>
-
-                                <button className="op-survey-btn">
-                                    <span>Iniciar Evaluación</span>
+                                <div className="op-supervisor-info">
+                                    <h3 className="op-supervisor-name">{supervisor.name}</h3>
+                                    <p className="op-supervisor-position">{supervisor.position}</p>
+                                </div>
+                                <button className="op-supervisor-btn">
+                                    <span>Evaluar</span>
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                         <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
@@ -188,53 +184,6 @@ const Dashboard = () => {
                     </div>
                 )}
             </section>
-
-            {/* Evaluación Directa (sin encuestas formales) */}
-            {surveys.length === 0 && evaluados.length > 0 && (
-                <section className="op-section">
-                    <div className="op-section-header">
-                        <h2 className="op-section-title">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            Evaluar a tu {
-                                nivelConfig?.evalua === 'mando_medio' ? 'Mando Medio' :
-                                    nivelConfig?.evalua === 'jefe_directo' ? 'Jefe Directo' :
-                                        'Superior'
-                            }
-                        </h2>
-                    </div>
-
-                    <p className="op-section-description">
-                        Puedes evaluar a tus superiores directos usando la evaluación estándar del sistema.
-                    </p>
-
-                    <div className="op-evaluados-grid">
-                        {evaluados.map((evaluado) => (
-                            <div
-                                key={evaluado.id}
-                                className="op-evaluado-card"
-                                onClick={() => navigate(`/encuestas/evaluar/${evaluado.id}`)}
-                            >
-                                <div className="op-evaluado-avatar">
-                                    {evaluado.nombre?.charAt(0)?.toUpperCase() || '?'}
-                                </div>
-                                <div className="op-evaluado-info">
-                                    <span className="op-evaluado-name">{evaluado.nombre}</span>
-                                    <span className="op-evaluado-role">
-                                        {NIVELES.find(n => n.id === evaluado.nivel)?.nombre || evaluado.nivel}
-                                    </span>
-                                </div>
-                                <div className="op-evaluado-arrow">
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
 
             {/* Ayuda */}
             <section className="op-section">

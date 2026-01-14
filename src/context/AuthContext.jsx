@@ -39,12 +39,19 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         setError(null)
         const result = await loginUser(email, password)
-        if (!result.success) {
+        if (result.success) {
+            // Cargar perfil del usuario después del login
+            const profileResult = await getUserProfile(result.user.uid)
+            if (profileResult.success) {
+                return { success: true, profile: profileResult.data }
+            }
+        } else {
             setError(result.error)
         }
         return result
     }
 
+    // register - Solo para uso de RH
     const register = async (email, password, userData) => {
         setError(null)
         const result = await registerUser(email, password, userData)

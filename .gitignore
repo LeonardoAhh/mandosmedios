@@ -49,3 +49,7 @@ datos.json
 # OS files
 Thumbs.db
 desktop.ini
+
+# Node binaries (should not be in repo)
+nodejs/
+*.exe

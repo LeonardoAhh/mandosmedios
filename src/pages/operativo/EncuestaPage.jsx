@@ -4,13 +4,12 @@ import {
     getSurveyById,
     getUserProfile,
     submitResponse,
-    getCompetenciasByNivel,
+    getCompetenciasDinamicas,
     PREGUNTA_ABIERTA
 } from '../../config/firebase'
 import { useAuth } from '../../context/AuthContext'
 import RatingScale from '../../components/ui/RatingScale'
 import Button from '../../components/ui/Button'
-import Card from '../../components/ui/Card'
 import Loader from '../../components/ui/Loader'
 import './EncuestaPage.css'
 
@@ -25,19 +24,23 @@ const EncuestaPage = () => {
     const [evaluado, setEvaluado] = useState(null)
     const [respuestas, setRespuestas] = useState({})
     const [comentario, setComentario] = useState('')
-    const [currentStep, setCurrentStep] = useState(0)
     const [success, setSuccess] = useState(false)
+    const [competencias, setCompetencias] = useState([])
 
-    // Obtener competencias según el nivel del usuario autenticado
-    const competencias = getCompetenciasByNivel(profile?.nivel || 'operativo')
     const preguntaAbierta = PREGUNTA_ABIERTA[profile?.nivel || 'operativo']
 
     useEffect(() => {
         loadData()
-    }, [surveyId, evaluadoId])
+    }, [surveyId, evaluadoId, profile])
 
     const loadData = async () => {
         try {
+            const nivel = profile?.nivel || 'operativo'
+            const compResult = await getCompetenciasDinamicas(nivel)
+            if (compResult.success) {
+                setCompetencias(compResult.data)
+            }
+
             if (surveyId) {
                 const surveyResult = await getSurveyById(surveyId)
                 if (surveyResult.success) {
@@ -87,29 +90,35 @@ const EncuestaPage = () => {
         }
     }
 
-    const progress = (Object.keys(respuestas).length / competencias.length) * 100
-    const canSubmit = Object.keys(respuestas).length === competencias.length
+    const answeredCount = Object.keys(respuestas).length
+    const totalQuestions = competencias.length
+    const progress = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0
+    const canSubmit = answeredCount === totalQuestions
+    const remaining = totalQuestions - answeredCount
 
     if (loading) {
         return <Loader fullScreen message="Cargando encuesta..." />
     }
 
+    // Estado de éxito
     if (success) {
         return (
-            <div className="encuesta-page">
-                <Card className="success-card">
+            <div className="encuesta-page success-page">
+                <div className="success-card">
                     <div className="success-content">
-                        <span className="success-icon">✅</span>
-                        <h2>¡Gracias por tu evaluación!</h2>
-                        <p>Tu respuesta ha sido registrada de forma anónima.</p>
+                        <div className="success-icon-wrapper">
+                            <span className="success-icon">✓</span>
+                        </div>
+                        <h2>¡Gracias!</h2>
+                        <p>Tu evaluación ha sido registrada de forma anónima.</p>
                         <p className="success-note">
                             Tu opinión ayuda a mejorar el liderazgo en la organización.
                         </p>
-                        <Button onClick={() => navigate('/encuestas')}>
+                        <button className="success-btn" onClick={() => navigate('/encuestas')}>
                             Volver al inicio
-                        </Button>
+                        </button>
                     </div>
-                </Card>
+                </div>
             </div>
         )
     }
@@ -121,38 +130,39 @@ const EncuestaPage = () => {
                 <button className="back-btn" onClick={() => navigate(-1)}>
                     ← Volver
                 </button>
-                <div>
-                    <h1 className="encuesta-title">
-                        {survey?.titulo || 'Evaluación de Liderazgo'}
-                    </h1>
-                    {evaluado && (
-                        <p className="encuesta-evaluado">
-                            Evaluando a: <strong>{evaluado.nombre}</strong>
-                        </p>
-                    )}
-                </div>
+                <h1 className="encuesta-title">
+                    {survey?.titulo || 'Evaluación de Liderazgo'}
+                </h1>
+                {evaluado && (
+                    <p className="encuesta-evaluado">
+                        Evaluando a <strong>{evaluado.nombre}</strong>
+                    </p>
+                )}
             </header>
 
-            {/* Progress Bar */}
+            {/* Barra de Progreso */}
             <div className="progress-container">
+                <div className="progress-header">
+                    <span className="progress-title">Tu progreso</span>
+                    <span className="progress-count">
+                        <strong>{answeredCount}</strong> de {totalQuestions}
+                    </span>
+                </div>
                 <div className="progress-bar">
                     <div
                         className="progress-fill"
                         style={{ width: `${progress}%` }}
-                    ></div>
+                    />
                 </div>
-                <span className="progress-text">
-                    {Object.keys(respuestas).length} de {competencias.length} competencias
-                </span>
             </div>
 
-            {/* Reminder */}
-            <Card variant="outline" className="reminder-card">
+            {/* Recordatorio */}
+            <div className="reminder-card">
                 <span>🔒</span>
-                <p>Recuerda: tus respuestas son <strong>100% anónimas</strong>. Responde con honestidad.</p>
-            </Card>
+                <p>Tus respuestas son <strong>100% anónimas</strong></p>
+            </div>
 
-            {/* Questions */}
+            {/* Preguntas */}
             <div className="questions-container">
                 {competencias.map((competencia, index) => (
                     <RatingScale
@@ -160,43 +170,56 @@ const EncuestaPage = () => {
                         competencia={competencia}
                         value={respuestas[competencia.id]}
                         onChange={(valor) => handleRatingChange(competencia.id, valor)}
+                        questionNumber={index + 1}
                     />
                 ))}
-
-                {/* Open Question */}
-                <Card className="open-question">
-                    <h3>💬 Pregunta abierta (opcional)</h3>
-                    <p className="question-description">
-                        {preguntaAbierta}
-                    </p>
-                    <textarea
-                        className="comment-input"
-                        value={comentario}
-                        onChange={(e) => setComentario(e.target.value)}
-                        placeholder="Escribe tu comentario aquí... (máximo 500 caracteres)"
-                        maxLength={500}
-                        rows={4}
-                    />
-                    <span className="char-count">{comentario.length}/500</span>
-                </Card>
             </div>
 
-            {/* Submit */}
-            <div className="submit-container">
-                <Button
-                    size="lg"
-                    fullWidth
-                    onClick={handleSubmit}
-                    disabled={!canSubmit}
-                    loading={submitting}
-                >
-                    {canSubmit ? 'Enviar Evaluación' : `Completa ${competencias.length - Object.keys(respuestas).length} preguntas más`}
-                </Button>
-                {!canSubmit && (
-                    <p className="submit-hint">
-                        Debes responder todas las competencias para enviar
-                    </p>
-                )}
+            {/* Pregunta Abierta */}
+            <div className="open-question">
+                <div className="open-question-header">
+                    <div className="open-question-icon">💬</div>
+                    <h3>
+                        Comentario
+                        <span className="optional-tag">(opcional)</span>
+                    </h3>
+                </div>
+                <p className="question-description">
+                    {preguntaAbierta}
+                </p>
+                <textarea
+                    className="comment-input"
+                    value={comentario}
+                    onChange={(e) => setComentario(e.target.value)}
+                    placeholder="Escribe tu comentario aquí..."
+                    maxLength={500}
+                    rows={4}
+                />
+                <span className="char-count">{comentario.length}/500</span>
+            </div>
+
+            {/* Botón de Envío */}
+            <div className="submit-section">
+                <div className="submit-container">
+                    <button
+                        className={`submit-btn ${submitting ? 'loading' : ''}`}
+                        onClick={handleSubmit}
+                        disabled={!canSubmit || submitting}
+                    >
+                        {submitting ? (
+                            <>Enviando...</>
+                        ) : canSubmit ? (
+                            <>Enviar Evaluación</>
+                        ) : (
+                            <>Faltan {remaining} preguntas</>
+                        )}
+                    </button>
+                    {!canSubmit && (
+                        <p className="submit-hint">
+                            Responde todas las preguntas para continuar
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     )

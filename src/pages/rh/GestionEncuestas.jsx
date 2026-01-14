@@ -51,7 +51,6 @@ const GestionEncuestas = () => {
         setSubmitting(true)
 
         try {
-            // Obtener competencias según el nivel evaluador seleccionado
             const competencias = getCompetenciasByNivel(formData.nivelEvaluador)
             const result = await createSurvey({
                 ...formData,
@@ -109,95 +108,120 @@ const GestionEncuestas = () => {
         })
     }
 
+    // Estadísticas rápidas
+    const totalSurveys = surveys.length
+    const activeSurveys = surveys.filter(s => s.activa).length
+
     if (loading) {
         return <Loader fullScreen message="Cargando encuestas..." />
     }
 
     return (
         <div className="gestion-encuestas">
-            {/* Header */}
+            {/* Header Moderno */}
             <header className="page-header">
-                <div>
-                    <h1 className="page-title">Gestión de Encuestas</h1>
+                <div className="page-header-content">
+                    <h1 className="page-title">Encuestas</h1>
                     <p className="page-subtitle">
-                        Crea y administra períodos de evaluación
+                        Gestiona los períodos de evaluación de liderazgo
                     </p>
                 </div>
-                <Button onClick={() => setShowModal(true)}>
-                    ➕ Nueva Encuesta
-                </Button>
+                <button className="btn-new-survey" onClick={() => setShowModal(true)}>
+                    <span>+</span>
+                    Nueva Encuesta
+                </button>
             </header>
 
-            {/* Encuestas List */}
-            <div className="surveys-list">
+            {/* Estadísticas Rápidas */}
+            {surveys.length > 0 && (
+                <div className="quick-stats">
+                    <div className="stat-card">
+                        <div className="stat-value">{totalSurveys}</div>
+                        <div className="stat-label">Total Encuestas</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value highlight">{activeSurveys}</div>
+                        <div className="stat-label">Activas</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value">{totalSurveys - activeSurveys}</div>
+                        <div className="stat-label">Inactivas</div>
+                    </div>
+                </div>
+            )}
+
+            {/* Lista de Encuestas */}
+            <div className="surveys-grid">
                 {surveys.length === 0 ? (
                     <Card>
                         <div className="empty-state">
-                            <span>📋</span>
+                            <div className="empty-state-icon">📋</div>
                             <h3>No hay encuestas</h3>
-                            <p>Crea tu primera encuesta de evaluación de liderazgo.</p>
-                            <Button onClick={() => setShowModal(true)}>
-                                Crear Encuesta
-                            </Button>
+                            <p>Crea tu primera encuesta para comenzar a evaluar el liderazgo en tu organización.</p>
+                            <button className="empty-state-btn" onClick={() => setShowModal(true)}>
+                                <span>+</span>
+                                Crear Primera Encuesta
+                            </button>
                         </div>
                     </Card>
                 ) : (
                     surveys.map((survey) => (
-                        <Card key={survey.id} className="survey-card">
-                            <div className="survey-main">
-                                <div className="survey-status">
-                                    <span className={`status-badge ${survey.activa ? 'active' : 'inactive'}`}>
-                                        {survey.activa ? '🟢 Activa' : '⚪ Inactiva'}
-                                    </span>
+                        <div key={survey.id} className="survey-card">
+                            <div className="survey-card-header">
+                                <span className={`status-badge ${survey.activa ? 'active' : 'inactive'}`}>
+                                    <span className="status-dot"></span>
+                                    {survey.activa ? 'Activa' : 'Inactiva'}
+                                </span>
+                                <div className="survey-actions">
+                                    <button
+                                        className="action-btn-icon"
+                                        onClick={() => toggleActive(survey.id, survey.activa)}
+                                        title={survey.activa ? 'Desactivar' : 'Activar'}
+                                    >
+                                        {survey.activa ? '⏸️' : '▶️'}
+                                    </button>
+                                    <button
+                                        className="action-btn-icon danger"
+                                        onClick={() => handleDelete(survey.id)}
+                                        title="Eliminar"
+                                    >
+                                        🗑️
+                                    </button>
                                 </div>
+                            </div>
+
+                            <div className="survey-card-body">
                                 <h3 className="survey-title">{survey.titulo}</h3>
-                                <p className="survey-description">{survey.descripcion}</p>
+                                <p className="survey-description">{survey.descripcion || 'Sin descripción'}</p>
 
                                 <div className="survey-meta">
                                     <div className="meta-item">
-                                        <span className="meta-label">Evaluadores:</span>
+                                        <span className="meta-label">Evaluadores</span>
                                         <span className="meta-value">
                                             {NIVELES.find(n => n.id === survey.nivelEvaluador)?.nombre || survey.nivelEvaluador}
                                         </span>
                                     </div>
                                     <div className="meta-item">
-                                        <span className="meta-label">Evaluados:</span>
+                                        <span className="meta-label">Evaluados</span>
                                         <span className="meta-value">
                                             {NIVELES.find(n => n.id === survey.nivelEvaluado)?.nombre || survey.nivelEvaluado}
                                         </span>
                                     </div>
                                     <div className="meta-item">
-                                        <span className="meta-label">Creada:</span>
+                                        <span className="meta-label">Creada</span>
                                         <span className="meta-value">{formatDate(survey.fechaCreacion)}</span>
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="survey-actions">
-                                <Button
-                                    variant={survey.activa ? 'secondary' : 'success'}
-                                    size="sm"
-                                    onClick={() => toggleActive(survey.id, survey.activa)}
-                                >
-                                    {survey.activa ? 'Desactivar' : 'Activar'}
-                                </Button>
-                                <Button
-                                    variant="danger"
-                                    size="sm"
-                                    onClick={() => handleDelete(survey.id)}
-                                >
-                                    Eliminar
-                                </Button>
-                            </div>
-                        </Card>
+                        </div>
                     ))
                 )}
             </div>
 
-            {/* Modal */}
+            {/* Modal Nueva Encuesta */}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <h2>Nueva Encuesta</h2>
                             <button className="modal-close" onClick={() => setShowModal(false)}>
@@ -206,63 +230,74 @@ const GestionEncuestas = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="modal-form">
-                            {error && <div className="form-error">{error}</div>}
+                            {error && (
+                                <div className="form-error">
+                                    <span>⚠️</span>
+                                    {error}
+                                </div>
+                            )}
 
-                            <Input
-                                label="Título de la encuesta"
-                                value={formData.titulo}
-                                onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-                                placeholder="Ej: Evaluación Q1 2024"
-                                required
-                            />
-
-                            <div className="input-group">
-                                <label className="input-label">Descripción</label>
-                                <textarea
-                                    className="textarea-input"
-                                    value={formData.descripcion}
-                                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                                    placeholder="Describe el propósito de esta evaluación"
-                                    rows={3}
+                            <div className="form-section">
+                                <Input
+                                    label="Título de la encuesta"
+                                    value={formData.titulo}
+                                    onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                                    placeholder="Ej: Evaluación Q1 2024"
+                                    required
                                 />
+
+                                <div className="input-group">
+                                    <label className="input-label">Descripción</label>
+                                    <textarea
+                                        className="textarea-input"
+                                        value={formData.descripcion}
+                                        onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                                        placeholder="Describe el propósito de esta evaluación"
+                                        rows={3}
+                                    />
+                                </div>
                             </div>
 
-                            <div className="form-row">
-                                <div className="input-group">
-                                    <label className="input-label">Quién evalúa</label>
-                                    <select
-                                        className="select-input"
-                                        value={formData.nivelEvaluador}
-                                        onChange={(e) => setFormData({ ...formData, nivelEvaluador: e.target.value })}
-                                    >
-                                        {NIVELES.filter(n => n.evalua).map(nivel => (
-                                            <option key={nivel.id} value={nivel.id}>
-                                                {nivel.nombre}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                            <div className="form-section">
+                                <span className="form-section-title">Configuración de Niveles</span>
 
-                                <div className="input-group">
-                                    <label className="input-label">A quién evalúa</label>
-                                    <select
-                                        className="select-input"
-                                        value={formData.nivelEvaluado}
-                                        onChange={(e) => setFormData({ ...formData, nivelEvaluado: e.target.value })}
-                                    >
-                                        {NIVELES.filter(n => n.id !== 'operativo').map(nivel => (
-                                            <option key={nivel.id} value={nivel.id}>
-                                                {nivel.nombre}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="form-row">
+                                    <div className="input-group">
+                                        <label className="input-label">Quién evalúa</label>
+                                        <select
+                                            className="select-input"
+                                            value={formData.nivelEvaluador}
+                                            onChange={(e) => setFormData({ ...formData, nivelEvaluador: e.target.value })}
+                                        >
+                                            {NIVELES.filter(n => n.evalua).map(nivel => (
+                                                <option key={nivel.id} value={nivel.id}>
+                                                    {nivel.nombre}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="input-group">
+                                        <label className="input-label">A quién evalúa</label>
+                                        <select
+                                            className="select-input"
+                                            value={formData.nivelEvaluado}
+                                            onChange={(e) => setFormData({ ...formData, nivelEvaluado: e.target.value })}
+                                        >
+                                            {NIVELES.filter(n => n.id !== 'operativo').map(nivel => (
+                                                <option key={nivel.id} value={nivel.id}>
+                                                    {nivel.nombre}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="competencias-preview">
-                                <span className="preview-label">Competencias según nivel evaluador:</span>
+                                <span className="preview-label">💡 Competencias automáticas</span>
                                 <p className="preview-note">
-                                    Las competencias se asignarán automáticamente según el nivel seleccionado
+                                    Las preguntas se asignarán automáticamente según el nivel seleccionado
                                 </p>
                             </div>
 

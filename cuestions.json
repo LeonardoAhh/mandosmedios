@@ -1,0 +1,166 @@
+[
+    {
+        "Punto": "Un jefe debe ser perfeccionista y tener muy claros los resultados que se esperan de todos y cada uno de los puestos a su cargo, así como, llevar el control y los indicadores por persona para mantener la rentabilidad de su departamento. Para ello cuenta con su organigrama actualizado y su factura mensual interna, en la cual costea los resultados de su departamento tal como si fuera una empresa, lo que le permite comparar sus resultados tanto con otros departamentos de la Empresa, como con el estándar del mercado.",
+        "Preguntas": "Tiene claros los resultados del equipo de trabajo?"
+    },
+    {
+        "Punto": "Un jefe debe ser perfeccionista y tener muy claros los resultados que se esperan de todos y cada uno de los puestos a su cargo, así como, llevar el control y los indicadores por persona para mantener la rentabilidad de su departamento. Para ello cuenta con su organigrama actualizado y su factura mensual interna, en la cual costea los resultados de su departamento tal como si fuera una empresa, lo que le permite comparar sus resultados tanto con otros departamentos de la Empresa, como con el estándar del mercado.",
+        "Preguntas": "¿Tu jefe te comparte el resultado mensual del área y el lugar en el que se encuentran comparado con los resultados del año pasado?"
+    },
+    {
+        "Punto": "Simplifica las tareas y se asegura que su personal cuente con las herramientas adecuadas y en óptimas condiciones para desempeñar su trabajo.",
+        "Preguntas": "¿Realiza una evaluación mensual del estado de tus herramientas de trabajo?"
+    },
+    {
+        "Punto": "Simplifica las tareas y se asegura que su personal cuente con las herramientas adecuadas y en óptimas condiciones para desempeñar su trabajo.",
+        "Preguntas": "¿Te enseña cómo hacer tus actividades de forma más simple?"
+    },
+    {
+        "Punto": "Debe asignar mensualmente objetivos y metas claras a su personal, en especial a los mejores talentos. Debe llevar a cabo un cierre de mes con el personal a su cargo para evaluar resultados, definir metas, identificar áreas de oportunidad y necesidades de capacitación, así como definir las nuevas estrategias de su área.",
+        "Preguntas": "¿Te asigna objetivos y metas semanales o mensuales?"
+    },
+    {
+        "Punto": "Debe asignar mensualmente objetivos y metas claras a su personal, en especial a los mejores talentos. Debe llevar a cabo un cierre de mes con el personal a su cargo para evaluar resultados, definir metas, identificar áreas de oportunidad y necesidades de capacitación, así como definir las nuevas estrategias de su área.",
+        "Preguntas": "¿Realiza un cierre mensual para dar a conocer resultados?"
+    },
+    {
+        "Punto": "Debe asignar mensualmente objetivos y metas claras a su personal, en especial a los mejores talentos. Debe llevar a cabo un cierre de mes con el personal a su cargo para evaluar resultados, definir metas, identificar áreas de oportunidad y necesidades de capacitación, así como definir las nuevas estrategias de su área.",
+        "Preguntas": "Te brinda un plan de trabajo con base a los resultados con los números rojos"
+    },
+    {
+        "Punto": "Debe asignar mensualmente objetivos y metas claras a su personal, en especial a los mejores talentos. Debe llevar a cabo un cierre de mes con el personal a su cargo para evaluar resultados, definir metas, identificar áreas de oportunidad y necesidades de capacitación, así como definir las nuevas estrategias de su área.",
+        "Preguntas": "¿Te brinda un plan de trabajo que te muestre cómo mantener o elevar los números verdes?"
+    },
+    {
+        "Punto": "Nunca deja de estudiar, y mantiene actualizado y capacitado a todo su personal. Está al tanto del expediente que administra recursos humanos (de cada colaborador que le reporta) y propicia que, su personal se mantenga actualizado conforme a los cursos que requiere según el nivel del escalafón que ocupa. Y debe notificar por escrito a Recursos Humanos y a Normatividad cuando su personal no esté alineado a una categoría con su respectiva capacitación, después de haberlo revisado en conjunto con el director de su área.",
+        "Preguntas": "¿El dominio de la operación le permite controlar el área?"
+    },
+    {
+        "Punto": "Nunca deja de estudiar, y mantiene actualizado y capacitado a todo su personal. Está al tanto del expediente que administra recursos humanos (de cada colaborador que le reporta) y propicia que, su personal se mantenga actualizado conforme a los cursos que requiere según el nivel del escalafón que ocupa. Y debe notificar por escrito a Recursos Humanos y a Normatividad cuando su personal no esté alineado a una categoría con su respectiva capacitación, después de haberlo revisado en conjunto con el director de su área.",
+        "Preguntas": "¿Participa en los programas de capacitación y/ó se mantiene actualizado en su operación?"
+    },
+    {
+        "Punto": "Nunca deja de estudiar, y mantiene actualizado y capacitado a todo su personal. Está al tanto del expediente que administra recursos humanos (de cada colaborador que le reporta) y propicia que, su personal se mantenga actualizado conforme a los cursos que requiere según el nivel del escalafón que ocupa. Y debe notificar por escrito a Recursos Humanos y a Normatividad cuando su personal no esté alineado a una categoría con su respectiva capacitación, después de haberlo revisado en conjunto con el director de su área.",
+        "Preguntas": "¿Te capacita para realizar tus actividades o asigna a alguna persona que pueda enseñarte?"
+    },
+    {
+        "Punto": "Nunca deja de estudiar, y mantiene actualizado y capacitado a todo su personal. Está al tanto del expediente que administra recursos humanos (de cada colaborador que le reporta) y propicia que, su personal se mantenga actualizado conforme a los cursos que requiere según el nivel del escalafón que ocupa. Y debe notificar por escrito a Recursos Humanos y a Normatividad cuando su personal no esté alineado a una categoría con su respectiva capacitación, después de haberlo revisado en conjunto con el director de su área.",
+        "Preguntas": "¿Te informa sobre los cursos y entrenamiento para tu puesto?"
+    },
+    {
+        "Punto": "Nunca deja de estudiar, y mantiene actualizado y capacitado a todo su personal. Está al tanto del expediente que administra recursos humanos (de cada colaborador que le reporta) y propicia que, su personal se mantenga actualizado conforme a los cursos que requiere según el nivel del escalafón que ocupa. Y debe notificar por escrito a Recursos Humanos y a Normatividad cuando su personal no esté alineado a una categoría con su respectiva capacitación, después de haberlo revisado en conjunto con el director de su área.",
+        "Preguntas": "¿Te da permiso para asistir a los cursos programados para tu puesto?"
+    },
+    {
+        "Punto": "Califica periódicamente el trabajo de su gente y cuenta con un listado de su personal (ordenado del más al menos productivo) en el cual debe incluir la fotografía de los mejores colaboradores. A su vez coteja con los clientes internos el resultado de su departamento para evaluar el resultado actual contra el resultado esperado. Y crea, hasta el extremo, prototipos para la mejora, hasta lograr el resultado esperado.",
+        "Preguntas": "¿Te informa sobre el ranking de productividad y el lugar que ocupas en este?"
+    },
+    {
+        "Punto": "Califica periódicamente el trabajo de su gente y cuenta con un listado de su personal (ordenado del más al menos productivo) en el cual debe incluir la fotografía de los mejores colaboradores. A su vez coteja con los clientes internos el resultado de su departamento para evaluar el resultado actual contra el resultado esperado. Y crea, hasta el extremo, prototipos para la mejora, hasta lograr el resultado esperado.",
+        "Preguntas": "¿Te informa sobre tu avance en el alcance de tus metas mensuales?"
+    },
+    {
+        "Punto": "Califica periódicamente el trabajo de su gente y cuenta con un listado de su personal (ordenado del más al menos productivo) en el cual debe incluir la fotografía de los mejores colaboradores. A su vez coteja con los clientes internos el resultado de su departamento para evaluar el resultado actual contra el resultado esperado. Y crea, hasta el extremo, prototipos para la mejora, hasta lograr el resultado esperado.",
+        "Preguntas": "¿Te informa como mejorar cuando los resultados no son los esperados?"
+    },
+    {
+        "Punto": "Usa más zanahorias que palos, por ello reconoce el esfuerzo y la dedicación de su equipo de trabajo a través de acciones concretas, tan sencillas como porras, aplausos, diplomas y certificados que reflejen el logro de sus colaboradores.",
+        "Preguntas": "¿Te felicita por alcanzar logros?"
+    },
+    {
+        "Punto": "Usa más zanahorias que palos, por ello reconoce el esfuerzo y la dedicación de su equipo de trabajo a través de acciones concretas, tan sencillas como porras, aplausos, diplomas y certificados que reflejen el logro de sus colaboradores.",
+        "Preguntas": "¿Mensualmente reconoce tus logros con un diploma, felicitación en público durante una junta o alguna otra actividad?"
+    },
+    {
+        "Punto": "Debe tener el tiempo necesario para escuchar a su gente, considerando estar al tanto de las inquietudes de su primer nivel como máximo una vez cada 15 días, para su segundo nivel, máximo cada 30 días y con su tercer nivel como máximo una vez cada 60 días. Para ello, el jefe está en la operación palpando de manera vivencial la realidad del departamento y el sentir de su personal, corroborando que lo que se dice, coincide con lo que se hace.",
+        "Preguntas": "¿Escucha las sugerencias, comentarios y opciones de mejora que le propones y son aplicables a tu operación?"
+    },
+    {
+        "Punto": "Debe tener el tiempo necesario para escuchar a su gente, considerando estar al tanto de las inquietudes de su primer nivel como máximo una vez cada 15 días, para su segundo nivel, máximo cada 30 días y con su tercer nivel como máximo una vez cada 60 días. Para ello, el jefe está en la operación palpando de manera vivencial la realidad del departamento y el sentir de su personal, corroborando que lo que se dice, coincide con lo que se hace.",
+        "Preguntas": "¿Está en contacto con la operación y se toma el tiempo para hablar y solucionar situaciones de todo el equipo?"
+    },
+    {
+        "Punto": "Debe tener el tiempo necesario para escuchar a su gente, considerando estar al tanto de las inquietudes de su primer nivel como máximo una vez cada 15 días, para su segundo nivel, máximo cada 30 días y con su tercer nivel como máximo una vez cada 60 días. Para ello, el jefe está en la operación palpando de manera vivencial la realidad del departamento y el sentir de su personal, corroborando que lo que se dice, coincide con lo que se hace.",
+        "Preguntas": "¿Al menos una vez cada quince días se reúne con el equipo para saber cómo está la operación?"
+    },
+    {
+        "Punto": "Debe tener el tiempo necesario para escuchar a su gente, considerando estar al tanto de las inquietudes de su primer nivel como máximo una vez cada 15 días, para su segundo nivel, máximo cada 30 días y con su tercer nivel como máximo una vez cada 60 días. Para ello, el jefe está en la operación palpando de manera vivencial la realidad del departamento y el sentir de su personal, corroborando que lo que se dice, coincide con lo que se hace.",
+        "Preguntas": "¿Se mantiene en contacto con el equipo a través de algún medio: reuniones, charlas informales, mensajes, correo, mensajes de whatsapp, etc?"
+    },
+    {
+        "Punto": "Aprovecha a los expertos y enseña a su gente, sobre todo las mejores prácticas, apoyado en sus “clones” a quienes deberá otorgar un reconocimiento, sabiendo que ellos tendrán mejores oportunidades de crecimiento",
+        "Preguntas": "¿Te indica quienes son los tutores o clones que pueden enseñar la operación y las mejores prácticas?"
+    },
+    {
+        "Punto": "Aprovecha a los expertos y enseña a su gente, sobre todo las mejores prácticas, apoyado en sus “clones” a quienes deberá otorgar un reconocimiento, sabiendo que ellos tendrán mejores oportunidades de crecimiento",
+        "Preguntas": "¿Reconoce tus mejores prácticas y las de tus compañeros, siempre y cuando son aplicables a la operación?"
+    },
+    {
+        "Punto": "Debe cumplir y hacer cumplir por su equipo de trabajo, las reglas de “Los puntos de Gestión” y de los códigos de la empresa y deberá reportar al área de Normatividad cuando no se puedan cumplir. A su vez, mantiene los secretos fundamentales del negocio.",
+        "Preguntas": "¿Cumple y hace cumplir las filosofías y políticas de la empresa?"
+    },
+    {
+        "Punto": "Debe hacer que su gente tenga la oportunidad de HACER DIARIO lo que mejor sabe hacer. Además un jefe debe reportar los problemas y contar con diferentes alternativas de solución.",
+        "Preguntas": "¿Te da la libertad para desempeñarte en las tareas que mejor dominas?"
+    },
+    {
+        "Punto": "Debe hacer que su gente tenga la oportunidad de HACER DIARIO lo que mejor sabe hacer. Además un jefe debe reportar los problemas y contar con diferentes alternativas de solución.",
+        "Preguntas": "¿Te soluciona los problemas del área o te informa sobre el seguimiento de estos en menos de 72 horas?"
+    },
+    {
+        "Punto": "Debe darle un PLAN DE CRECIMIENTO Y DESARROLLO a su personal, para ello debe contar con el escalafón de su personal, los tabuladores vigentes y tener identificada la diferencia (GAP) entre el perfil ideal y el perfil que tiene cada uno de sus colaboradores y con esto, elaborar el plan individual de cada uno de ellos",
+        "Preguntas": "¿Te informa sobre oportunidades de crecimiento y apoya para que sucedan, ya sea en tu área o en otra área a fin siempre y cuando cumplas con los requisitos que necesitan?"
+    },
+    {
+        "Punto": "Es impecable en su actuación diaria y debe preocuparse por su gente y por el bienestar del grupo de trabajo en todos los aspectos. Así mismo, debe hacer que su grupo trabaje en conjunto y por consenso en equipos pequeños. Debe mantener un ambiente de comunicación abierta, informándoles sobre todo lo que ocurre y ocurrirá en su área.",
+        "Preguntas": "Consideras que tu jefe es un ejemplo a seguir"
+    },
+    {
+        "Punto": "Nuestras Relaciones",
+        "Preguntas": "Comprende a los integrantes del equipo reforzando los lazos entre los integrantes de este"
+    },
+    {
+        "Punto": "Nuestras Relaciones",
+        "Preguntas": "Tiene habilidad para relacionarse con los integrantes del equipo de trabajo fomentando el respeto y colaboración"
+    },
+    {
+        "Punto": "Éxitos Compartidos",
+        "Preguntas": "Apoya al equipo para alcanzar las metas fomentando el \"\"nosotros\"\" y no el \"\"yo\"\" hice."
+    },
+    {
+        "Punto": "Éxitos Compartidos",
+        "Preguntas": "Reconoce el triunfo del equipo."
+    },
+    {
+        "Punto": "Éxitos Compartidos",
+        "Preguntas": "Exhorta e inspira al equipo."
+    },
+    {
+        "Punto": "Impulsar",
+        "Preguntas": "Muestra interés en otras perspectivas y respeta las opiniones de todos."
+    },
+    {
+        "Punto": "Impulsar",
+        "Preguntas": "Confía en tus habilidades y te motiva para que alcances tus resultados"
+    },
+    {
+        "Punto": "Diversión",
+        "Preguntas": "Sonríe y te saluda todos los días"
+    },
+    {
+        "Punto": "Diversión",
+        "Preguntas": "Transmite alegría y entusiasmo para realizar las actividades diarias."
+    },
+    {
+        "Punto": "Individualidad",
+        "Preguntas": "Muestra o contagia interés y orgullo por pertenecer a ViñoPlastic"
+    },
+    {
+        "Punto": "Individualidad",
+        "Preguntas": "¿Respeta los gustos y personalidad de cada integrante del equipo?"
+    },
+    {
+        "Punto": "Individualidad",
+        "Preguntas": "¿Establece relaciones fuertes con una variedad de personas?"
+    }
+]

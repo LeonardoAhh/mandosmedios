@@ -5,13 +5,20 @@ const RatingScale = ({
     value,
     onChange,
     competencia,
-    disabled = false
+    disabled = false,
+    questionNumber
 }) => {
+    const isAnswered = value !== undefined && value !== null
+    const showDescription = competencia.descripcion &&
+        competencia.descripcion !== competencia.nombre
+
     return (
-        <div className="rating-scale">
+        <div className={`rating-scale ${isAnswered ? 'answered' : ''}`}>
             <div className="rating-question">
-                <h4 className="rating-competencia">{competencia.nombre}</h4>
-                <p className="rating-descripcion">{competencia.descripcion}</p>
+                <h4 className="rating-competencia">
+                    {questionNumber && <span className="question-num">{questionNumber}. </span>}
+                    {competencia.descripcion || competencia.nombre}
+                </h4>
             </div>
 
             <div className="rating-options">

@@ -103,8 +103,8 @@ const Reportes = () => {
                         promedios,
                         fortalezas,
                         oportunidades,
-                        comentarios: comentarios.slice(0, 5), // Máximo 5 comentarios
-                        competencias // Incluir las competencias usadas
+                        comentarios: comentarios.slice(0, 5),
+                        competencias
                     })
                 }
             }
@@ -128,26 +128,23 @@ const Reportes = () => {
             valor: reportData.promedios[c.id]?.promedio || 0
         }))
 
-        // Simple radar visualization using CSS
         return (
-            <div className="radar-container">
-                <div className="radar-grid">
+            <div className="rep-radar-container">
+                <div className="rep-radar-grid">
                     {competencias.map((comp, i) => {
                         const porcentaje = (comp.valor / 5) * 100
+                        const colorClass = comp.valor >= 4 ? 'success' : comp.valor >= 3 ? 'warning' : 'danger'
+
                         return (
-                            <div key={comp.id} className="radar-bar">
-                                <div className="radar-label">{comp.nombre}</div>
-                                <div className="radar-track">
+                            <div key={comp.id} className="rep-radar-bar">
+                                <div className="rep-radar-label">{comp.nombre}</div>
+                                <div className="rep-radar-track">
                                     <div
-                                        className="radar-fill"
-                                        style={{
-                                            width: `${porcentaje}%`,
-                                            backgroundColor: comp.valor >= 4 ? 'var(--success)' :
-                                                comp.valor >= 3 ? 'var(--warning)' : 'var(--danger)'
-                                        }}
+                                        className={`rep-radar-fill rep-radar-fill-${colorClass}`}
+                                        style={{ width: `${porcentaje}%` }}
                                     ></div>
                                 </div>
-                                <div className="radar-value">{comp.valor.toFixed(1)}</div>
+                                <div className="rep-radar-value">{comp.valor.toFixed(1)}</div>
                             </div>
                         )
                     })}
@@ -163,27 +160,27 @@ const Reportes = () => {
     return (
         <div className="reportes-page">
             {/* Header */}
-            <header className="page-header">
-                <div>
-                    <h1 className="page-title">Reportes de Evaluación</h1>
-                    <p className="page-subtitle">
-                        Resultados agregados por evaluado
+            <header className="rep-header">
+                <div className="rep-header-content">
+                    <h1 className="rep-title">Reportes de Evaluación</h1>
+                    <p className="rep-subtitle">
+                        Resultados agregados y análisis de desempeño por evaluado
                     </p>
                 </div>
             </header>
 
-            <div className="reportes-layout">
+            <div className="rep-layout">
                 {/* Sidebar - Lista de evaluados */}
-                <aside className="evaluados-sidebar">
-                    <div className="sidebar-header">
-                        <h3>Seleccionar Evaluado</h3>
+                <aside className="rep-sidebar">
+                    <div className="rep-sidebar-header">
+                        <h3 className="rep-sidebar-title">Evaluados</h3>
                         <select
-                            className="filter-select"
+                            className="rep-filter-select"
                             value={filterNivel}
                             onChange={(e) => setFilterNivel(e.target.value)}
                         >
                             <option value="all">Todos los niveles</option>
-                            {NIVELES.filter(n => n.evalua === null || ['mando_medio', 'jefe_directo', 'gerente'].includes(n.id))
+                            {NIVELES.filter(n => ['mando_medio', 'jefe_directo', 'gerente'].includes(n.id))
                                 .map(n => (
                                     <option key={n.id} value={n.id}>{n.nombre}</option>
                                 ))
@@ -191,113 +188,192 @@ const Reportes = () => {
                         </select>
                     </div>
 
-                    <div className="evaluados-list">
-                        {filteredEvaluados.map((evaluado) => (
-                            <button
-                                key={evaluado.id}
-                                className={`evaluado-item ${selectedEvaluado === evaluado.id ? 'active' : ''}`}
-                                onClick={() => loadReport(evaluado.id)}
-                            >
-                                <div className="evaluado-avatar">
-                                    {evaluado.nombre?.charAt(0) || '?'}
-                                </div>
-                                <div className="evaluado-info">
-                                    <span className="evaluado-name">{evaluado.nombre}</span>
-                                    <span className="evaluado-nivel">
-                                        {NIVELES.find(n => n.id === evaluado.nivel)?.nombre}
-                                    </span>
-                                </div>
-                            </button>
-                        ))}
+                    <div className="rep-evaluados-list">
+                        {filteredEvaluados.length === 0 ? (
+                            <div className="rep-empty-list">
+                                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                    <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="2" />
+                                    <path d="M24 16v12M24 32h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                <p>No hay evaluados en este nivel</p>
+                            </div>
+                        ) : (
+                            filteredEvaluados.map((evaluado) => (
+                                <button
+                                    key={evaluado.id}
+                                    className={`rep-evaluado-item ${selectedEvaluado === evaluado.id ? 'active' : ''}`}
+                                    onClick={() => loadReport(evaluado.id)}
+                                >
+                                    <div className="rep-evaluado-avatar">
+                                        {evaluado.nombre?.charAt(0)?.toUpperCase() || '?'}
+                                    </div>
+                                    <div className="rep-evaluado-info">
+                                        <span className="rep-evaluado-name">{evaluado.nombre}</span>
+                                        <span className="rep-evaluado-nivel">
+                                            {NIVELES.find(n => n.id === evaluado.nivel)?.nombre}
+                                        </span>
+                                    </div>
+                                    {selectedEvaluado === evaluado.id && (
+                                        <div className="rep-selected-indicator">
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                </button>
+                            ))
+                        )}
                     </div>
                 </aside>
 
                 {/* Main Content - Reporte */}
-                <main className="reporte-content">
+                <main className="rep-content">
                     {!selectedEvaluado ? (
-                        <Card className="placeholder-card">
-                            <div className="placeholder">
-                                <span>📊</span>
-                                <h3>Selecciona un evaluado</h3>
-                                <p>Elige a un líder de la lista para ver su reporte de evaluación.</p>
+                        <div className="rep-placeholder">
+                            <div className="rep-placeholder-icon">
+                                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                    <rect x="12" y="8" width="40" height="48" rx="4" stroke="currentColor" strokeWidth="2" />
+                                    <rect x="20" y="16" width="24" height="4" rx="2" fill="currentColor" />
+                                    <rect x="20" y="26" width="24" height="4" rx="2" fill="currentColor" />
+                                    <rect x="20" y="36" width="16" height="4" rx="2" fill="currentColor" />
+                                </svg>
                             </div>
-                        </Card>
+                            <h3 className="rep-placeholder-title">Selecciona un evaluado</h3>
+                            <p className="rep-placeholder-text">
+                                Elige a un líder de la lista para ver su reporte detallado de evaluación.
+                            </p>
+                        </div>
                     ) : loading ? (
                         <Loader message="Cargando reporte..." />
                     ) : reportData?.sinDatos ? (
-                        <Card>
-                            <div className="placeholder">
-                                <span>📭</span>
-                                <h3>Sin evaluaciones</h3>
-                                <p>{reportData.evaluado?.nombre} aún no tiene evaluaciones registradas.</p>
+                        <div className="rep-placeholder">
+                            <div className="rep-placeholder-icon">
+                                <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                    <rect x="12" y="16" width="40" height="32" rx="2" stroke="currentColor" strokeWidth="2" />
+                                    <path d="M22 32h20M22 40h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <path d="M24 12l8-8 8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                             </div>
-                        </Card>
+                            <h3 className="rep-placeholder-title">Sin evaluaciones</h3>
+                            <p className="rep-placeholder-text">
+                                {reportData.evaluado?.nombre} aún no tiene evaluaciones registradas.
+                            </p>
+                        </div>
                     ) : (
-                        <div className="reporte-detail">
+                        <div className="rep-detail">
                             {/* Header del reporte */}
-                            <Card className="reporte-header-card">
-                                <div className="reporte-header">
-                                    <div className="reporte-evaluado">
-                                        <div className="evaluado-avatar-lg">
-                                            {reportData.evaluado?.nombre?.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h2>{reportData.evaluado?.nombre}</h2>
-                                            <p>{NIVELES.find(n => n.id === reportData.evaluado?.nivel)?.nombre}</p>
-                                        </div>
+                            <div className="rep-header-card">
+                                <div className="rep-evaluado-header">
+                                    <div className="rep-evaluado-avatar-lg">
+                                        {reportData.evaluado?.nombre?.charAt(0)?.toUpperCase()}
                                     </div>
-                                    <div className="reporte-stats">
-                                        <Semaforo valor={reportData.promedioGeneral} size="lg" />
-                                        <span className="stats-label">
-                                            {reportData.totalRespuestas} evaluaciones
-                                        </span>
+                                    <div className="rep-evaluado-details">
+                                        <h2 className="rep-evaluado-name-lg">{reportData.evaluado?.nombre}</h2>
+                                        <p className="rep-evaluado-position">
+                                            {NIVELES.find(n => n.id === reportData.evaluado?.nivel)?.nombre}
+                                        </p>
+                                        <div className="rep-evaluado-meta">
+                                            <span className="rep-meta-item">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M14 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM5 12H3V6h2v6zM9 12H7V4h2v8zM13 12h-2V8h2v4z" fill="currentColor" />
+                                                </svg>
+                                                {reportData.totalRespuestas} evaluaciones
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </Card>
+                                <div className="rep-promedio-card">
+                                    <div className="rep-promedio-semaforo">
+                                        <Semaforo valor={reportData.promedioGeneral} size="lg" showLabel={false} />
+                                    </div>
+                                    <div className="rep-promedio-value">{reportData.promedioGeneral.toFixed(1)}</div>
+                                    <div className="rep-promedio-label">Promedio General</div>
+                                </div>
+                            </div>
 
-                            {/* Gráfico */}
-                            <Card title="Resultados por Competencia" icon="📊">
+                            {/* Gráfico de competencias */}
+                            <div className="rep-chart-card">
+                                <div className="rep-card-header">
+                                    <h3 className="rep-card-title">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <path d="M18 18H2V2M6 14V10M10 14V6M14 14v-4M18 14v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        Resultados por Competencia
+                                    </h3>
+                                </div>
                                 {renderRadarChart()}
-                            </Card>
+                            </div>
 
                             {/* Fortalezas y Oportunidades */}
-                            <div className="insights-grid">
-                                <Card variant="success" className="insight-card">
-                                    <h3>✅ Fortalezas</h3>
-                                    <ul className="insight-list">
+                            <div className="rep-insights-grid">
+                                <div className="rep-insight-card rep-insight-success">
+                                    <h3 className="rep-insight-title">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <circle cx="10" cy="10" r="9" fill="currentColor" opacity="0.2" />
+                                            <path d="M6 10l2.5 2.5L14 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        Fortalezas
+                                    </h3>
+                                    <ul className="rep-insight-list">
                                         {reportData.fortalezas.map((f) => (
-                                            <li key={f.id}>
-                                                <span className="insight-name">{f.nombre}</span>
-                                                <Semaforo valor={f.promedio} size="sm" showLabel={false} />
+                                            <li key={f.id} className="rep-insight-item">
+                                                <span className="rep-insight-name">{f.nombre}</span>
+                                                <div className="rep-insight-score">
+                                                    <Semaforo valor={f.promedio} size="sm" showLabel={false} />
+                                                    <span className="rep-insight-value">{f.promedio.toFixed(1)}</span>
+                                                </div>
                                             </li>
                                         ))}
                                     </ul>
-                                </Card>
+                                </div>
 
-                                <Card variant="warning" className="insight-card">
-                                    <h3>⚠️ Áreas de Mejora</h3>
-                                    <ul className="insight-list">
+                                <div className="rep-insight-card rep-insight-warning">
+                                    <h3 className="rep-insight-title">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                            <path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" fill="currentColor" opacity="0.2" />
+                                            <path d="M10 7v4M10 13h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        </svg>
+                                        Áreas de Mejora
+                                    </h3>
+                                    <ul className="rep-insight-list">
                                         {reportData.oportunidades.map((o) => (
-                                            <li key={o.id}>
-                                                <span className="insight-name">{o.nombre}</span>
-                                                <Semaforo valor={o.promedio} size="sm" showLabel={false} />
+                                            <li key={o.id} className="rep-insight-item">
+                                                <span className="rep-insight-name">{o.nombre}</span>
+                                                <div className="rep-insight-score">
+                                                    <Semaforo valor={o.promedio} size="sm" showLabel={false} />
+                                                    <span className="rep-insight-value">{o.promedio.toFixed(1)}</span>
+                                                </div>
                                             </li>
                                         ))}
                                     </ul>
-                                </Card>
+                                </div>
                             </div>
 
                             {/* Comentarios */}
                             {reportData.comentarios.length > 0 && (
-                                <Card title="Comentarios (anónimos)" icon="💬">
-                                    <ul className="comments-list">
+                                <div className="rep-comments-card">
+                                    <div className="rep-card-header">
+                                        <h3 className="rep-card-title">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                <path d="M17 7v7a2 2 0 0 1-2 2H5l-4 4V3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                            Comentarios Anónimos
+                                        </h3>
+                                        <span className="rep-comments-count">{reportData.comentarios.length}</span>
+                                    </div>
+                                    <ul className="rep-comments-list">
                                         {reportData.comentarios.map((comment, i) => (
-                                            <li key={i} className="comment-item">
-                                                "{comment}"
+                                            <li key={i} className="rep-comment-item">
+                                                <div className="rep-comment-icon">
+                                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                        <path d="M14 5.33V10.67a1.33 1.33 0 0 1-1.33 1.33H4L1.33 14.67V2.67A1.33 1.33 0 0 1 2.67 1.33h10A1.33 1.33 0 0 1 14 2.67v2.66z" fill="currentColor" />
+                                                    </svg>
+                                                </div>
+                                                <p className="rep-comment-text">"{comment}"</p>
                                             </li>
                                         ))}
                                     </ul>
-                                </Card>
+                                </div>
                             )}
                         </div>
                     )}

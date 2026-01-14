@@ -3,6 +3,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Función helper para verificar si el usuario actual es RH
+    function isRH() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+    }
+    
     // =====================
     // USUARIOS
     // =====================
@@ -10,13 +16,22 @@ service cloud.firestore {
       // Los usuarios pueden leer su propio perfil
       allow read: if request.auth != null && request.auth.uid == userId;
       
-      // Solo admins (RH) pueden crear/modificar usuarios
-      allow create, update, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
-      
       // RH puede leer todos los usuarios
-      allow read: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      allow read: if isRH();
+      
+      // RH puede crear nuevos usuarios
+      allow create: if isRH();
+      
+      // RH puede actualizar usuarios
+      allow update: if isRH();
+      
+      // RH puede eliminar usuarios
+      allow delete: if isRH();
+      
+      // Usuarios pueden actualizar su propio turnoActual
+      allow update: if request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['turnoActual', 'lastLogin']);
     }
     
     // =====================
@@ -27,8 +42,7 @@ service cloud.firestore {
       allow read: if request.auth != null;
       
       // Solo RH puede modificar supervisores
-      allow create, update, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      allow create, update, delete: if isRH();
     }
     
     // =====================
@@ -39,20 +53,18 @@ service cloud.firestore {
       allow read: if request.auth != null;
       
       // Solo RH puede modificar competencias
-      allow create, update, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      allow create, update, delete: if isRH();
     }
     
     // =====================
     // ENCUESTAS
     // =====================
     match /surveys/{surveyId} {
-      // Usuarios autenticados pueden leer encuestas activas
+      // Usuarios autenticados pueden leer encuestas
       allow read: if request.auth != null;
       
       // Solo RH puede crear/modificar encuestas
-      allow create, update, delete: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      allow create, update, delete: if isRH();
     }
     
     // =====================
@@ -63,8 +75,7 @@ service cloud.firestore {
       allow create: if request.auth != null;
       
       // Solo RH puede leer respuestas
-      allow read: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+      allow read: if isRH();
       
       // No se pueden modificar ni eliminar respuestas
       allow update, delete: if false;

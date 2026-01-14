@@ -4,6 +4,7 @@ import {
     registerUser,
     updateUser,
     deleteUser,
+    generateUserCredentials,
     NIVELES
 } from '../../config/firebase'
 import {
@@ -37,6 +38,12 @@ const GestionUsuarios = () => {
     const [error, setError] = useState('')
     const [filter, setFilter] = useState('all')
     const [searchTerm, setSearchTerm] = useState('')
+
+    // Estados para credenciales automáticas
+    const [showCredentialsModal, setShowCredentialsModal] = useState(false)
+    const [generatedCredentials, setGeneratedCredentials] = useState(null)
+    const [useAutoCredentials, setUseAutoCredentials] = useState(true)
+    const [employeeNumber, setEmployeeNumber] = useState('')
 
     const puestosDisponibles = formData.departamento
         ? getPuestosByDepartamento(formData.departamento)
@@ -75,6 +82,8 @@ const GestionUsuarios = () => {
         })
         setEditingUser(null)
         setError('')
+        setEmployeeNumber('')
+        setUseAutoCredentials(true)
     }
 
     const handleDepartamentoChange = (departamento) => {
@@ -105,6 +114,23 @@ const GestionUsuarios = () => {
         setSubmitting(true)
 
         try {
+            let email = formData.email.trim()
+            let password = formData.password
+
+            // Si usa credenciales automáticas, generarlas
+            if (useAutoCredentials && employeeNumber) {
+                const creds = generateUserCredentials(employeeNumber)
+                email = creds.email
+                password = creds.password
+            }
+
+            // Validar que tenemos email y password
+            if (!email || !password) {
+                setError('Email y contraseña son requeridos')
+                setSubmitting(false)
+                return
+            }
+
             const userData = {
                 nombre: formData.nombre.trim(),
                 rol: formData.rol,
@@ -113,17 +139,26 @@ const GestionUsuarios = () => {
                 puesto: formData.puesto,
                 evaluaA: formData.evaluaA,
                 turnoFijo: parseInt(formData.turnoFijo) || 1,
-                turnoActual: parseInt(formData.turnoFijo) || 1
+                turnoActual: parseInt(formData.turnoFijo) || 1,
+                employeeNumber: employeeNumber || null,
+                credentials: useAutoCredentials ? {
+                    password: password,
+                    generatedAt: new Date().toISOString()
+                } : null
             }
 
-            const result = await registerUser(
-                formData.email.trim(),
-                formData.password,
-                userData
-            )
+            const result = await registerUser(email, password, userData)
 
             if (result.success) {
+                // Guardar credenciales para mostrar en modal
+                setGeneratedCredentials({
+                    nombre: formData.nombre,
+                    email: email,
+                    password: password,
+                    employeeNumber: employeeNumber
+                })
                 setShowModal(false)
+                setShowCredentialsModal(true)
                 resetForm()
                 await loadUsers()
             } else {
@@ -134,6 +169,14 @@ const GestionUsuarios = () => {
             setError('Error al crear usuario. Por favor intenta de nuevo.')
         } finally {
             setSubmitting(false)
+        }
+    }
+
+    const handleCopyCredentials = () => {
+        if (generatedCredentials) {
+            const text = `Email: ${generatedCredentials.email}\nContraseña: ${generatedCredentials.password}`
+            navigator.clipboard.writeText(text)
+            alert('Credenciales copiadas al portapapeles')
         }
     }
 
@@ -428,28 +471,63 @@ const GestionUsuarios = () => {
                                     />
                                 </div>
 
-                                <div className="gu-form-row">
-                                    <div className="gu-form-group">
-                                        <Input
-                                            label="Correo electrónico"
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            required
-                                            placeholder="correo@ejemplo.com"
+                                {/* Toggle credenciales automáticas */}
+                                <div className="gu-form-group">
+                                    <label className="gu-toggle-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={useAutoCredentials}
+                                            onChange={(e) => setUseAutoCredentials(e.target.checked)}
                                         />
-                                    </div>
-                                    <div className="gu-form-group">
-                                        <Input
-                                            label="Contraseña"
-                                            type="password"
-                                            value={formData.password}
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            required
-                                            placeholder="Mínimo 6 caracteres"
-                                        />
-                                    </div>
+                                        <span>Generar credenciales automáticas</span>
+                                    </label>
+                                    <p className="gu-form-help">
+                                        {useAutoCredentials
+                                            ? 'Se generará email y contraseña basados en el número de empleado'
+                                            : 'Ingresa email y contraseña manualmente'
+                                        }
+                                    </p>
                                 </div>
+
+                                {useAutoCredentials ? (
+                                    <div className="gu-form-group">
+                                        <Input
+                                            label="Número de empleado"
+                                            value={employeeNumber}
+                                            onChange={(e) => setEmployeeNumber(e.target.value)}
+                                            required
+                                            placeholder="Ej: 12345"
+                                        />
+                                        {employeeNumber && (
+                                            <p className="gu-preview-email">
+                                                Email generado: <strong>operativo{employeeNumber}@vinoplastic.local</strong>
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="gu-form-row">
+                                        <div className="gu-form-group">
+                                            <Input
+                                                label="Correo electrónico"
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                required
+                                                placeholder="correo@ejemplo.com"
+                                            />
+                                        </div>
+                                        <div className="gu-form-group">
+                                            <Input
+                                                label="Contraseña"
+                                                type="password"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                required
+                                                placeholder="Mínimo 6 caracteres"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="gu-form-section">
@@ -572,6 +650,61 @@ const GestionUsuarios = () => {
                                 </Button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Credenciales Generadas */}
+            {showCredentialsModal && generatedCredentials && (
+                <div className="gu-modal-overlay" onClick={() => setShowCredentialsModal(false)}>
+                    <div className="gu-modal gu-credentials-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="gu-modal-header">
+                            <h2 className="gu-modal-title">✅ Usuario Creado</h2>
+                            <button
+                                className="gu-modal-close"
+                                onClick={() => setShowCredentialsModal(false)}
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="gu-credentials-content">
+                            <p className="gu-credentials-name">
+                                <strong>{generatedCredentials.nombre}</strong>
+                            </p>
+
+                            <div className="gu-credentials-box">
+                                <div className="gu-credential-row">
+                                    <span className="gu-credential-label">Email:</span>
+                                    <span className="gu-credential-value">{generatedCredentials.email}</span>
+                                </div>
+                                <div className="gu-credential-row">
+                                    <span className="gu-credential-label">Contraseña:</span>
+                                    <span className="gu-credential-value gu-password">{generatedCredentials.password}</span>
+                                </div>
+                                {generatedCredentials.employeeNumber && (
+                                    <div className="gu-credential-row">
+                                        <span className="gu-credential-label">No. Empleado:</span>
+                                        <span className="gu-credential-value">{generatedCredentials.employeeNumber}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="gu-credentials-warning">
+                                ⚠️ Guarda estas credenciales. La contraseña no se puede recuperar después.
+                            </div>
+
+                            <div className="gu-credentials-actions">
+                                <Button onClick={handleCopyCredentials}>
+                                    📋 Copiar Credenciales
+                                </Button>
+                                <Button variant="secondary" onClick={() => setShowCredentialsModal(false)}>
+                                    Cerrar
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

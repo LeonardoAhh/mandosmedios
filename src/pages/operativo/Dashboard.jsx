@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { getSupervisoresByDepartmentAndShift } from '../../config/firebase'
+import { db } from '../../config/firebase'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import Loader from '../../components/ui/Loader'
 import { useNavigate } from 'react-router-dom'
 import './DashboardOperativo.css'
@@ -10,47 +11,34 @@ const Dashboard = () => {
     const navigate = useNavigate()
     const [supervisores, setSupervisores] = useState([])
     const [loading, setLoading] = useState(true)
-    const [refreshing, setRefreshing] = useState(false)
 
     useEffect(() => {
-        loadData()
-    }, [profile])
-
-    const loadData = async (isRefresh = false) => {
         if (!profile) return
 
-        try {
-            if (isRefresh) {
-                setRefreshing(true)
-            } else {
-                setLoading(true)
-            }
+        const turno = profile.turnoActual || profile.turnoFijo || 1
+        const departamento = profile.departamento || 'PRODUCCIÓN'
 
-            // Cargar supervisores del turno actual y departamento del usuario
-            const turno = profile.turnoActual || profile.turnoFijo || 1
-            const departamento = profile.departamento || 'PRODUCCIÓN'
+        // Listener en tiempo real para supervisores
+        const supervisoresQuery = query(
+            collection(db, 'supervisores'),
+            where('department', '==', departamento),
+            where('currentShift', '==', turno)
+        )
 
-            console.log('Cargando supervisores:', { turno, departamento })
-
-            const result = await getSupervisoresByDepartmentAndShift(departamento, turno)
-
-            if (result.success) {
-                console.log('Supervisores encontrados:', result.data)
-                setSupervisores(result.data)
-            } else {
-                console.error('Error cargando supervisores:', result.error)
-            }
-        } catch (error) {
-            console.error('Error loading data:', error)
-        } finally {
+        const unsubscribeSupervisores = onSnapshot(supervisoresQuery, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            setSupervisores(data)
             setLoading(false)
-            setRefreshing(false)
-        }
-    }
+        }, (error) => {
+            console.error('Error en listener de supervisores:', error)
+            setLoading(false)
+        })
 
-    const handleRefresh = () => {
-        loadData(true)
-    }
+        // Cleanup: cancelar listeners al desmontar
+        return () => {
+            unsubscribeSupervisores()
+        }
+    }, [profile])
 
     const handleEvaluar = (supervisor) => {
         navigate(`/encuestas/evaluar/${supervisor.id}`)
@@ -75,22 +63,10 @@ const Dashboard = () => {
                         Tu opinión es confidencial y ayuda a mejorar el liderazgo
                     </p>
                 </div>
-                <button
-                    className="op-btn-refresh"
-                    onClick={handleRefresh}
-                    disabled={refreshing}
-                    aria-label="Actualizar supervisores"
-                >
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        className={refreshing ? 'rotating' : ''}
-                    >
-                        <path d="M17.5 10a7.5 7.5 0 1 1-2.197-5.303M15 3v4.5h-4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </button>
+                <div className="op-live-indicator">
+                    <span className="op-live-dot"></span>
+                    En vivo
+                </div>
             </header>
 
             {/* Info Banner - Turno y Departamento */}
@@ -148,59 +124,41 @@ const Dashboard = () => {
                     <div className="op-empty-state">
                         <div className="op-empty-icon">
                             <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                                <circle cx="32" cy="32" r="28" fill="#fef3c7" />
-                                <path d="M32 20v12M32 40h.01" stroke="#92400e" strokeWidth="4" strokeLinecap="round" />
+                                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="2" strokeDasharray="8 4" />
+                                <path d="M32 45v-8M32 29a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                             </svg>
                         </div>
-                        <h3 className="op-empty-title">No hay supervisores en tu turno</h3>
+                        <h3 className="op-empty-title">Sin supervisores en tu turno</h3>
                         <p className="op-empty-text">
-                            No encontramos supervisores asignados al turno {turnoActual} de {profile?.departamento}.
-                            Si crees que esto es un error, contacta a Recursos Humanos.
+                            No hay supervisores asignados al Turno {turnoActual} de {profile?.departamento}.
                         </p>
                     </div>
                 ) : (
                     <div className="op-supervisores-grid">
                         {supervisores.map((supervisor) => (
-                            <div
-                                key={supervisor.id}
-                                className="op-supervisor-card"
-                                onClick={() => handleEvaluar(supervisor)}
-                            >
-                                <div className="op-supervisor-avatar">
-                                    {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
+                            <div key={supervisor.id} className="op-supervisor-card">
+                                <div className="op-supervisor-header">
+                                    <div className="op-supervisor-avatar">
+                                        {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
+                                    </div>
+                                    <div className="op-supervisor-info">
+                                        <h3 className="op-supervisor-name">{supervisor.name}</h3>
+                                        <p className="op-supervisor-position">{supervisor.position}</p>
+                                    </div>
                                 </div>
-                                <div className="op-supervisor-info">
-                                    <h3 className="op-supervisor-name">{supervisor.name}</h3>
-                                    <p className="op-supervisor-position">{supervisor.position}</p>
+                                <div className="op-supervisor-meta">
+                                    <span className="op-supervisor-dept">{supervisor.department}</span>
                                 </div>
-                                <button className="op-supervisor-btn">
-                                    <span>Evaluar</span>
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <button className="op-btn-evaluar" onClick={() => handleEvaluar(supervisor)}>
+                                    Evaluar
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </button>
                             </div>
                         ))}
                     </div>
                 )}
-            </section>
-
-            {/* Ayuda */}
-            <section className="op-section">
-                <div className="op-help-card">
-                    <div className="op-help-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                            <path d="M12 16v.01M12 12a2 2 0 0 0-2-2 2 2 0 0 1 2-2 2 2 0 0 1 2 2c0 1.5-2 1.5-2 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                    </div>
-                    <div className="op-help-content">
-                        <h3 className="op-help-title">¿Necesitas ayuda?</h3>
-                        <p className="op-help-text">
-                            Si tienes dudas sobre cómo completar una evaluación, contacta a tu departamento de RH.
-                        </p>
-                    </div>
-                </div>
             </section>
         </div>
     )

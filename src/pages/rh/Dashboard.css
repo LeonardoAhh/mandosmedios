@@ -40,6 +40,42 @@
     font-weight: 400;
 }
 
+/* Indicador en vivo */
+.dash-live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 2rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #059669;
+}
+
+.dash-live-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: dashPulse 2s infinite;
+}
+
+@keyframes dashPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
 .dash-btn-refresh {
     display: inline-flex;
     align-items: center;
@@ -147,6 +183,16 @@
 .dash-kpi-icon-orange {
     background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
     color: #9a3412;
+}
+
+.dash-kpi-icon-teal {
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+    color: #0f766e;
+}
+
+.dash-action-icon-teal {
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+    color: #0f766e;
 }
 
 .dash-kpi-badge {

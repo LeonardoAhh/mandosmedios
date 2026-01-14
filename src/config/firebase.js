@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps, getApp } from 'firebase/app'
 import {
     getAuth,
     signInWithEmailAndPassword,
@@ -39,6 +39,11 @@ const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
 
+// Segunda app para crear usuarios sin cerrar sesión del admin
+const secondaryApp = getApps().find(a => a.name === 'secondary') ||
+    initializeApp(firebaseConfig, 'secondary')
+const secondaryAuth = getAuth(secondaryApp)
+
 // =====================
 // AUTENTICACIÓN
 // =====================
@@ -52,9 +57,11 @@ export const loginUser = async (email, password) => {
     }
 }
 
+// Registrar usuario (usa auth secundaria para no cerrar sesión del admin)
 export const registerUser = async (email, password, userData) => {
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        // Usar auth secundaria para crear el usuario
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password)
         const user = userCredential.user
 
         // Crear documento de usuario en Firestore
@@ -80,8 +87,12 @@ export const registerUser = async (email, password, userData) => {
 
         await setDoc(doc(db, 'users', user.uid), userDoc)
 
+        // Cerrar sesión del usuario creado en auth secundaria
+        await signOut(secondaryAuth)
+
         return { success: true, user, userData: userDoc }
     } catch (error) {
+        console.error('Error en registerUser:', error)
         return { success: false, error: getAuthErrorMessage(error.code) }
     }
 }
@@ -365,6 +376,17 @@ export const getResponsesByEvaluado = async (evaluadoId) => {
             where('evaluadoId', '==', evaluadoId)
         )
         const snapshot = await getDocs(q)
+        const responses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        return { success: true, data: responses }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Obtener todas las respuestas (para reportes)
+export const getAllResponses = async () => {
+    try {
+        const snapshot = await getDocs(collection(db, 'responses'))
         const responses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         return { success: true, data: responses }
     } catch (error) {

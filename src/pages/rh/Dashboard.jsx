@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react'
-import {
-    getSurveys,
-    getAllUsers,
-    getResponsesBySurvey,
-    NIVELES
-} from '../../config/firebase'
-import Card from '../../components/ui/Card'
+import { db } from '../../config/firebase'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { NIVELES } from '../../config/firebase'
 import Semaforo from '../../components/ui/Semaforo'
 import Loader from '../../components/ui/Loader'
 import { useNavigate } from 'react-router-dom'
@@ -18,95 +14,96 @@ const Dashboard = () => {
         totalEncuestas: 0,
         encuestasActivas: 0,
         totalUsuarios: 0,
+        totalSupervisores: 0,
         totalRespuestas: 0,
         promedioGeneral: 0
     })
     const [alertas, setAlertas] = useState([])
-    const [refreshing, setRefreshing] = useState(false)
+    const [supervisores, setSupervisores] = useState([])
 
     useEffect(() => {
-        loadDashboardData()
-    }, [])
+        // Listener para usuarios
+        const unsubscribeUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+            setStats(prev => ({ ...prev, totalUsuarios: snapshot.size }))
+        })
 
-    const loadDashboardData = async (isRefresh = false) => {
-        try {
-            if (isRefresh) {
-                setRefreshing(true)
-            } else {
-                setLoading(true)
-            }
+        // Listener para supervisores
+        const unsubscribeSupervisores = onSnapshot(collection(db, 'supervisores'), (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            setSupervisores(data)
+            setStats(prev => ({ ...prev, totalSupervisores: data.length }))
+        })
 
-            // Cargar encuestas
-            const surveysResult = await getSurveys()
-            const surveys = surveysResult.success ? surveysResult.data : []
+        // Listener para encuestas
+        const unsubscribeSurveys = onSnapshot(collection(db, 'surveys'), (snapshot) => {
+            const surveys = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            setStats(prev => ({
+                ...prev,
+                totalEncuestas: surveys.length,
+                encuestasActivas: surveys.filter(s => s.activa).length
+            }))
+        })
 
-            // Cargar usuarios
-            const usersResult = await getAllUsers()
-            const users = usersResult.success ? usersResult.data : []
+        // Listener para respuestas - calcular estadísticas en tiempo real
+        const unsubscribeResponses = onSnapshot(collection(db, 'responses'), (snapshot) => {
+            const responses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 
-            // Cargar respuestas de todas las encuestas
-            let totalRespuestas = 0
+            // Calcular total de respuestas
+            const totalRespuestas = responses.length
+
+            // Calcular promedio general
             let sumaPuntajes = 0
             let countPuntajes = 0
-            const alertasTemp = []
+            const alertasMap = new Map()
 
-            for (const survey of surveys.filter(s => s.activa)) {
-                const responsesResult = await getResponsesBySurvey(survey.id)
-                if (responsesResult.success) {
-                    const responses = responsesResult.data
-                    totalRespuestas += responses.length
+            responses.forEach(resp => {
+                if (resp.respuestas) {
+                    const valores = Object.values(resp.respuestas).filter(v => typeof v === 'number')
+                    valores.forEach(v => {
+                        sumaPuntajes += v
+                        countPuntajes++
+                    })
 
-                    // Calcular promedios
-                    responses.forEach(resp => {
-                        if (resp.respuestas) {
-                            const valores = Object.values(resp.respuestas)
-                            valores.forEach(v => {
-                                sumaPuntajes += v
-                                countPuntajes++
-                            })
+                    // Detectar alertas (promedios < 3)
+                    if (valores.length > 0) {
+                        const promedio = valores.reduce((a, b) => a + b, 0) / valores.length
 
-                            // Detectar alertas (promedios < 3)
-                            const promedio = valores.reduce((a, b) => a + b, 0) / valores.length
-                            if (promedio < 3) {
-                                const evaluado = users.find(u => u.id === resp.evaluadoId)
-                                if (evaluado && !alertasTemp.some(a => a.id === resp.evaluadoId)) {
-                                    alertasTemp.push({
-                                        id: resp.evaluadoId,
-                                        nombre: evaluado.nombre,
-                                        promedio,
-                                        nivel: evaluado.nivel
-                                    })
-                                }
+                        if (promedio < 3 && resp.evaluadoId) {
+                            const current = alertasMap.get(resp.evaluadoId)
+                            if (!current || promedio < current.promedio) {
+                                alertasMap.set(resp.evaluadoId, {
+                                    id: resp.evaluadoId,
+                                    nombre: resp.evaluadoName || 'Sin nombre',
+                                    promedio,
+                                    nivel: resp.evaluadoDepartment || ''
+                                })
                             }
                         }
-                    })
+                    }
                 }
-            }
+            })
 
             const promedioGeneral = countPuntajes > 0 ? sumaPuntajes / countPuntajes : 0
 
-            setStats({
-                totalEncuestas: surveys.length,
-                encuestasActivas: surveys.filter(s => s.activa).length,
-                totalUsuarios: users.length,
-                totalRespuestas,
-                promedioGeneral
-            })
+            setStats(prev => ({ ...prev, totalRespuestas, promedioGeneral }))
 
-            // Ordenar alertas por promedio más bajo y limitar a 5
-            setAlertas(alertasTemp.sort((a, b) => a.promedio - b.promedio).slice(0, 5))
+            // Ordenar alertas por promedio más bajo
+            const alertasArr = Array.from(alertasMap.values())
+                .sort((a, b) => a.promedio - b.promedio)
+                .slice(0, 5)
+            setAlertas(alertasArr)
 
-        } catch (error) {
-            console.error('Error loading dashboard:', error)
-        } finally {
             setLoading(false)
-            setRefreshing(false)
-        }
-    }
+        })
 
-    const handleRefresh = () => {
-        loadDashboardData(true)
-    }
+        // Cleanup
+        return () => {
+            unsubscribeUsers()
+            unsubscribeSupervisores()
+            unsubscribeSurveys()
+            unsubscribeResponses()
+        }
+    }, [])
 
     if (loading) {
         return <Loader fullScreen message="Cargando dashboard..." />
@@ -122,23 +119,10 @@ const Dashboard = () => {
                         Panel de control del sistema de evaluación de liderazgo
                     </p>
                 </div>
-                <button
-                    className="dash-btn-refresh"
-                    onClick={handleRefresh}
-                    disabled={refreshing}
-                    aria-label="Actualizar datos"
-                >
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        className={refreshing ? 'rotating' : ''}
-                    >
-                        <path d="M17.5 10a7.5 7.5 0 1 1-2.197-5.303M15 3v4.5h-4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span>{refreshing ? 'Actualizando...' : 'Actualizar'}</span>
-                </button>
+                <div className="dash-live-indicator">
+                    <span className="dash-live-dot"></span>
+                    En vivo
+                </div>
             </header>
 
             {/* KPIs principales */}
@@ -158,24 +142,35 @@ const Dashboard = () => {
                     <div className="dash-kpi-label">Encuestas Activas</div>
                 </div>
 
-                <div className="dash-kpi-card dash-kpi-clickable" onClick={() => navigate('/rh/usuarios')}>
+                <div className="dash-kpi-card dash-kpi-clickable" onClick={() => navigate('/rh/supervisores')}>
                     <div className="dash-kpi-header">
-                        <div className="dash-kpi-icon dash-kpi-icon-purple">
+                        <div className="dash-kpi-icon dash-kpi-icon-teal">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
                     </div>
+                    <div className="dash-kpi-value">{stats.totalSupervisores}</div>
+                    <div className="dash-kpi-label">Supervisores</div>
+                </div>
+
+                <div className="dash-kpi-card dash-kpi-clickable" onClick={() => navigate('/rh/usuarios')}>
+                    <div className="dash-kpi-header">
+                        <div className="dash-kpi-icon dash-kpi-icon-purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
                     <div className="dash-kpi-value">{stats.totalUsuarios}</div>
-                    <div className="dash-kpi-label">Usuarios Registrados</div>
+                    <div className="dash-kpi-label">Usuarios</div>
                 </div>
 
                 <div className="dash-kpi-card">
                     <div className="dash-kpi-header">
                         <div className="dash-kpi-icon dash-kpi-icon-orange">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
                     </div>
@@ -220,7 +215,7 @@ const Dashboard = () => {
 
                     <button
                         className="dash-action-card"
-                        onClick={() => navigate('/rh/usuarios/nuevo')}
+                        onClick={() => navigate('/rh/usuarios')}
                     >
                         <div className="dash-action-icon dash-action-icon-green">
                             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -228,7 +223,7 @@ const Dashboard = () => {
                             </svg>
                         </div>
                         <span className="dash-action-label">Agregar Usuario</span>
-                        <span className="dash-action-description">Registrar nuevo usuario</span>
+                        <span className="dash-action-description">Registrar nuevo operativo</span>
                     </button>
 
                     <button
@@ -246,15 +241,15 @@ const Dashboard = () => {
 
                     <button
                         className="dash-action-card"
-                        onClick={() => navigate('/rh/competencias')}
+                        onClick={() => navigate('/rh/supervisores')}
                     >
-                        <div className="dash-action-icon dash-action-icon-orange">
+                        <div className="dash-action-icon dash-action-icon-teal">
                             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                                <path d="M4 16l4 4 4-4M28 16l-4-4-4 4M16 4v24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M22 28v-3a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v3M13 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM28 28v-3a5 5 0 0 0-4-4.9M19 5.1a5 5 0 0 1 0 9.8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
-                        <span className="dash-action-label">Competencias</span>
-                        <span className="dash-action-description">Gestionar preguntas</span>
+                        <span className="dash-action-label">Supervisores</span>
+                        <span className="dash-action-description">Gestionar turnos</span>
                     </button>
                 </div>
             </section>
@@ -275,7 +270,7 @@ const Dashboard = () => {
 
                     <div className="dash-alert-container">
                         <p className="dash-alert-intro">
-                            Los siguientes líderes tienen evaluaciones por debajo del umbral aceptable (promedio &lt; 3.0)
+                            Los siguientes supervisores tienen evaluaciones por debajo del umbral aceptable (promedio &lt; 3.0)
                         </p>
                         <div className="dash-alert-list">
                             {alertas.map((alerta, index) => (
@@ -286,7 +281,7 @@ const Dashboard = () => {
                                     <div className="dash-alert-info">
                                         <div className="dash-alert-name">{alerta.nombre}</div>
                                         <div className="dash-alert-meta">
-                                            {NIVELES.find(n => n.id === alerta.nivel)?.nombre || alerta.nivel}
+                                            {alerta.nivel}
                                         </div>
                                     </div>
                                     <div className="dash-alert-score">
@@ -334,14 +329,8 @@ const Dashboard = () => {
                         </div>
                         <h3 className="dash-empty-title">Sin Datos de Evaluación</h3>
                         <p className="dash-empty-text">
-                            Aún no hay respuestas registradas. Crea una encuesta y compártela para comenzar a recopilar evaluaciones.
+                            Aún no hay respuestas registradas. Los operativos pueden evaluar supervisores desde su dashboard.
                         </p>
-                        <button
-                            className="dash-empty-btn"
-                            onClick={() => navigate('/rh/encuestas/nueva')}
-                        >
-                            Crear Primera Encuesta
-                        </button>
                     </div>
                 </section>
             )}

@@ -39,7 +39,7 @@ const GestionSupervisores = () => {
         department: 'PRODUCCIÓN',
         currentShift: 1
     })
-    const [filter, setFilter] = useState({ department: '', shift: '' })
+    const [filter, setFilter] = useState({ department: '', shift: '', position: '' })
     const [migrating, setMigrating] = useState(false)
 
     useEffect(() => {
@@ -137,9 +137,13 @@ const GestionSupervisores = () => {
         }
     }
 
+    // Obtener posiciones únicas para el filtro
+    const uniquePositions = [...new Set(supervisores.map(s => s.position))].sort()
+
     const filteredSupervisores = supervisores.filter(s => {
         if (filter.department && s.department !== filter.department) return false
         if (filter.shift && s.currentShift !== parseInt(filter.shift)) return false
+        if (filter.position && s.position !== filter.position) return false
         return true
     })
 
@@ -154,8 +158,8 @@ const GestionSupervisores = () => {
             {/* Header */}
             <header className="gs-header">
                 <div className="gs-header-content">
-                    <h1 className="gs-title">Gestión de Supervisores</h1>
-                    <p className="gs-subtitle">Administra los supervisores y sus turnos</p>
+                    <h1 className="gs-title">Gestión de Evaluadores</h1>
+                    <p className="gs-subtitle">Administra los evaluadores (Supervisores, Auxiliares, etc.) y sus turnos</p>
                 </div>
                 <div className="gs-header-actions">
                     {supervisores.length === 0 && (
@@ -168,13 +172,23 @@ const GestionSupervisores = () => {
                         </Button>
                     )}
                     <Button onClick={() => handleOpenModal()}>
-                        + Nuevo Supervisor
+                        + Nuevo Evaluador
                     </Button>
                 </div>
             </header>
 
             {/* Filtros */}
             <div className="gs-filters">
+                <select
+                    className="gs-filter-select"
+                    value={filter.position}
+                    onChange={(e) => setFilter(prev => ({ ...prev, position: e.target.value }))}
+                >
+                    <option value="">Todas las posiciones</option>
+                    {uniquePositions.map(pos => (
+                        <option key={pos} value={pos}>{pos}</option>
+                    ))}
+                </select>
                 <select
                     className="gs-filter-select"
                     value={filter.department}
@@ -202,15 +216,15 @@ const GestionSupervisores = () => {
             <div className="gs-stats">
                 <div className="gs-stat-card">
                     <span className="gs-stat-value">{supervisores.length}</span>
-                    <span className="gs-stat-label">Total Supervisores</span>
+                    <span className="gs-stat-label">Total Evaluadores</span>
                 </div>
                 <div className="gs-stat-card">
-                    <span className="gs-stat-value">{supervisores.filter(s => s.department === 'PRODUCCIÓN').length}</span>
-                    <span className="gs-stat-label">Producción</span>
+                    <span className="gs-stat-value">{supervisores.filter(s => s.position?.includes('SUPERVISOR')).length}</span>
+                    <span className="gs-stat-label">Supervisores</span>
                 </div>
                 <div className="gs-stat-card">
-                    <span className="gs-stat-value">{supervisores.filter(s => s.department === 'CALIDAD').length}</span>
-                    <span className="gs-stat-label">Calidad</span>
+                    <span className="gs-stat-value">{supervisores.filter(s => s.position?.includes('AUXILIAR')).length}</span>
+                    <span className="gs-stat-label">Auxiliares</span>
                 </div>
             </div>
 
@@ -289,7 +303,7 @@ const GestionSupervisores = () => {
                 <div className="gs-modal-overlay" onClick={handleCloseModal}>
                     <div className="gs-modal" onClick={(e) => e.stopPropagation()}>
                         <h2 className="gs-modal-title">
-                            {editingSupervisor ? 'Editar Supervisor' : 'Nuevo Supervisor'}
+                            {editingSupervisor ? 'Editar Evaluador' : 'Nuevo Evaluador'}
                         </h2>
                         <form onSubmit={handleSubmit}>
                             <div className="gs-form-group">

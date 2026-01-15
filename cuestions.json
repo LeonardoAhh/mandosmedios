@@ -162,5 +162,29 @@
     {
         "Punto": "Individualidad",
         "Preguntas": "¿Establece relaciones fuertes con una variedad de personas?"
+    },
+    {
+        "Punto": "Liderazgo",
+        "Preguntas": "Consideras que tu jefe es un ejemplo a seguir"
+    },
+    {
+        "Punto": "Liderazgo",
+        "Preguntas": "¿Tu jefe toma decisiones de manera oportuna y efectiva?"
+    },
+    {
+        "Punto": "Liderazgo",
+        "Preguntas": "¿Tu jefe demuestra compromiso con los objetivos del equipo?"
+    },
+    {
+        "Punto": "Liderazgo",
+        "Preguntas": "¿Tu jefe inspira confianza y credibilidad en el equipo?"
+    },
+    {
+        "Punto": "Liderazgo",
+        "Preguntas": "¿Tu jefe promueve un ambiente de trabajo positivo y motivador?"
+    },
+    {
+        "Punto": "Liderazgo",
+        "Preguntas": "¿Tu jefe se comunica de manera clara y efectiva con el equipo?"
     }
 ]

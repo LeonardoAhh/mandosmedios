@@ -4,6 +4,7 @@ import {
     getAllResponses,
     getCompetenciasDinamicas
 } from '../../config/firebase'
+import { CRITERIOS, agruparCompetenciasPorCriterio } from '../../config/criteriosEvaluacion'
 import { generateSupervisorReport, generateConsolidatedReport } from '../../services/pdfService'
 import Button from '../../components/ui/Button'
 import Semaforo from '../../components/ui/Semaforo'
@@ -62,7 +63,7 @@ const Reportes = () => {
                 supervisor
             })
         } else {
-            // Calcular promedios por competencia
+            // Calcular promedios por competencia (pregunta individual)
             const promedios = {}
 
             competencias.forEach(comp => {
@@ -78,28 +79,35 @@ const Reportes = () => {
                 }
             })
 
+            // Agrupar por criterios (7 criterios en lugar de preguntas individuales)
+            const criteriosAgrupados = agruparCompetenciasPorCriterio(competencias, promedios)
+
             // Extraer comentarios
             const comentarios = supervisorResponses
                 .map(r => r.comentario)
                 .filter(c => c && c.trim())
 
-            // Calcular promedio general
-            const todosPromedios = Object.values(promedios).map(p => p.promedio)
-            const promedioGeneral = todosPromedios.length > 0
-                ? todosPromedios.reduce((a, b) => a + b, 0) / todosPromedios.length
+            // Calcular promedio general basado en criterios
+            const promediosCriterios = Object.values(criteriosAgrupados).map(c => c.promedio)
+            const promedioGeneral = promediosCriterios.length > 0
+                ? promediosCriterios.reduce((a, b) => a + b, 0) / promediosCriterios.length
                 : 0
 
-            // Identificar fortalezas y oportunidades
-            const competenciasOrdenadas = Object.entries(promedios)
-                .map(([id, data]) => ({
-                    ...competencias.find(c => c.id === id),
-                    ...data
-                }))
-                .filter(c => c.nombre)
+            // Identificar fortalezas y oportunidades (ahora basado en criterios)
+            const criteriosOrdenados = Object.values(criteriosAgrupados)
+                .filter(c => c.promedio !== undefined)
                 .sort((a, b) => b.promedio - a.promedio)
 
-            const fortalezas = competenciasOrdenadas.slice(0, 3)
-            const oportunidades = competenciasOrdenadas.slice(-3).reverse()
+            const fortalezas = criteriosOrdenados.slice(0, 3).map(c => ({
+                id: c.criterio.id,
+                nombre: c.criterio.nombre,
+                promedio: c.promedio
+            }))
+            const oportunidades = criteriosOrdenados.slice(-3).reverse().map(c => ({
+                id: c.criterio.id,
+                nombre: c.criterio.nombre,
+                promedio: c.promedio
+            }))
 
             // Estadísticas por turno
             const porTurno = {}
@@ -113,7 +121,8 @@ const Reportes = () => {
                 supervisor,
                 totalRespuestas: supervisorResponses.length,
                 promedioGeneral,
-                promedios,
+                promedios, // Mantener promedios individuales por si se necesitan
+                criteriosAgrupados, // Nuevo: promedios por criterio
                 fortalezas,
                 oportunidades,
                 comentarios: comentarios.slice(0, 5),
@@ -156,32 +165,34 @@ const Reportes = () => {
     }
 
     const renderRadarChart = () => {
-        if (!reportData || !reportData.promedios) return null
+        if (!reportData || !reportData.criteriosAgrupados) return null
 
-        const competenciasConValor = competencias.map(c => ({
-            ...c,
-            valor: reportData.promedios[c.id]?.promedio || 0
-        })).filter(c => c.valor > 0)
+        const criteriosConValor = Object.values(reportData.criteriosAgrupados)
+            .filter(c => c.promedio > 0)
+            .sort((a, b) => b.promedio - a.promedio)
 
-        if (competenciasConValor.length === 0) return <p>Sin datos de competencias</p>
+        if (criteriosConValor.length === 0) return <p>Sin datos de competencias</p>
 
         return (
             <div className="rep-radar-container">
                 <div className="rep-radar-grid">
-                    {competenciasConValor.map((comp) => {
-                        const porcentaje = (comp.valor / 5) * 100
-                        const colorClass = comp.valor >= 4 ? 'success' : comp.valor >= 3 ? 'warning' : 'danger'
+                    {criteriosConValor.map((item) => {
+                        const porcentaje = (item.promedio / 5) * 100
+                        const colorClass = item.promedio >= 4 ? 'success' : item.promedio >= 3 ? 'warning' : 'danger'
 
                         return (
-                            <div key={comp.id} className="rep-radar-bar">
-                                <div className="rep-radar-label">{comp.nombre}</div>
+                            <div key={item.criterio.id} className="rep-radar-bar">
+                                <div className="rep-radar-label">
+                                    <span className="rep-radar-icon">{item.criterio.icono}</span>
+                                    {item.criterio.nombre}
+                                </div>
                                 <div className="rep-radar-track">
                                     <div
                                         className={`rep-radar-fill rep-radar-fill-${colorClass}`}
                                         style={{ width: `${porcentaje}%` }}
                                     ></div>
                                 </div>
-                                <div className="rep-radar-value">{comp.valor.toFixed(1)}</div>
+                                <div className="rep-radar-value">{item.promedio.toFixed(1)}</div>
                             </div>
                         )
                     })}
@@ -372,7 +383,7 @@ const Reportes = () => {
                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                             <path d="M18 18H2V2M6 14V10M10 14V6M14 14v-4M18 14v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
-                                        Resultados por Competencia
+                                        Resultados por Criterio
                                     </h3>
                                 </div>
                                 {renderRadarChart()}

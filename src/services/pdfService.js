@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf'
+import { CRITERIOS, agruparCompetenciasPorCriterio } from '../config/criteriosEvaluacion'
 
 // Colores corporativos
 const COLORS = {
@@ -34,7 +35,7 @@ export const generateSupervisorReport = (reportData) => {
     // === RESUMEN EJECUTIVO ===
     y = drawExecutiveSummary(pdf, reportData, y)
 
-    // === RESULTADOS POR COMPETENCIA ===
+    // === RESULTADOS POR CRITERIO ===
     y = drawCompetenciasChart(pdf, reportData, y)
 
     // === FORTALEZAS Y ÁREAS DE MEJORA ===
@@ -164,52 +165,58 @@ function drawCompetenciasChart(pdf, data, y) {
         y = PAGE.margin
     }
 
-    y = drawSectionTitle(pdf, 'Resultados por Competencia', y)
+    y = drawSectionTitle(pdf, 'Resultados por Criterio', y)
 
-    if (!data.promedios || Object.keys(data.promedios).length === 0) {
+    // Usar criteriosAgrupados si existe, sino agrupar promedios
+    let criteriosData = data.criteriosAgrupados
+    if (!criteriosData && data.promedios && data.competencias) {
+        criteriosData = agruparCompetenciasPorCriterio(data.competencias, data.promedios)
+    }
+
+    if (!criteriosData || Object.keys(criteriosData).length === 0) {
         pdf.setFontSize(10)
         pdf.setTextColor(...COLORS.gray)
-        pdf.text('No hay datos de competencias disponibles.', PAGE.margin, y)
+        pdf.text('No hay datos de criterios disponibles.', PAGE.margin, y)
         return y + 10
     }
 
-    const competencias = Object.entries(data.promedios).map(([id, val]) => ({
-        nombre: data.competencias?.find(c => c.id === id)?.nombre || id,
-        promedio: val.promedio
-    })).sort((a, b) => b.promedio - a.promedio)
+    const criterios = Object.values(criteriosData)
+        .filter(c => c.promedio > 0)
+        .sort((a, b) => b.promedio - a.promedio)
 
-    const barHeight = 8
-    const maxBarWidth = 100
-    const labelWidth = 60
+    const barHeight = 10
+    const maxBarWidth = 90
+    const labelWidth = 70
 
-    competencias.forEach((comp, i) => {
-        const barY = y + (i * (barHeight + 5))
-        const percentage = (comp.promedio / 5) * 100
+    criterios.forEach((item, i) => {
+        const barY = y + (i * (barHeight + 6))
+        const percentage = (item.promedio / 5) * 100
         const barWidth = (percentage / 100) * maxBarWidth
 
-        // Nombre de la competencia
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'normal')
+        // Nombre del criterio con ícono
+        pdf.setFontSize(10)
+        pdf.setFont('helvetica', 'bold')
         pdf.setTextColor(...COLORS.dark)
-        pdf.text(comp.nombre.substring(0, 30), PAGE.margin, barY + 5)
+        const criterioNombre = item.criterio?.nombre || 'Sin nombre'
+        pdf.text(criterioNombre.substring(0, 25), PAGE.margin, barY + 6)
 
         // Barra de fondo
         pdf.setFillColor(...COLORS.lightGray)
         pdf.roundedRect(PAGE.margin + labelWidth, barY, maxBarWidth, barHeight, 2, 2, 'F')
 
         // Barra de progreso
-        const color = comp.promedio >= 4 ? COLORS.success :
-            comp.promedio >= 3 ? COLORS.warning : COLORS.danger
+        const color = item.promedio >= 4 ? COLORS.success :
+            item.promedio >= 3 ? COLORS.warning : COLORS.danger
         pdf.setFillColor(...color)
         pdf.roundedRect(PAGE.margin + labelWidth, barY, barWidth, barHeight, 2, 2, 'F')
 
         // Valor
         pdf.setFont('helvetica', 'bold')
         pdf.setTextColor(...COLORS.dark)
-        pdf.text(comp.promedio.toFixed(1), PAGE.margin + labelWidth + maxBarWidth + 5, barY + 5)
+        pdf.text(item.promedio.toFixed(1), PAGE.margin + labelWidth + maxBarWidth + 5, barY + 6)
     })
 
-    y += competencias.length * (barHeight + 5) + 10
+    y += criterios.length * (barHeight + 6) + 10
 
     return y
 }

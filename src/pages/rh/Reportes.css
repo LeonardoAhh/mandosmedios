@@ -453,6 +453,13 @@
     font-size: 0.875rem;
     font-weight: 500;
     color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rep-radar-icon {
+    font-size: 1.125rem;
 }
 
 .rep-radar-track {

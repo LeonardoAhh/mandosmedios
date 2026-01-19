@@ -453,14 +453,25 @@ export const deleteUser = async (userId) => {
 // =====================
 
 // Obtener competencias por nivel desde Firestore
+// Soporta tanto el formato antiguo (nivel: string) como el nuevo (niveles: array)
 export const getCompetenciasDinamicas = async (nivel) => {
     try {
-        const q = query(
-            collection(db, 'competencias'),
-            where('nivel', '==', nivel)
-        )
-        const snapshot = await getDocs(q)
-        const competencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        // Obtener todas las competencias (necesario porque array-contains no funciona con OR)
+        const snapshot = await getDocs(collection(db, 'competencias'))
+        const todasCompetencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+        // Filtrar competencias que aplican a este nivel
+        const competencias = todasCompetencias.filter(comp => {
+            // Formato nuevo: niveles es un array
+            if (comp.niveles && Array.isArray(comp.niveles)) {
+                return comp.niveles.includes(nivel)
+            }
+            // Formato antiguo: nivel es un string (retrocompatibilidad)
+            if (comp.nivel) {
+                return comp.nivel === nivel
+            }
+            return false
+        })
 
         // Ordenar por orden si existe
         competencias.sort((a, b) => (a.orden || 0) - (b.orden || 0))
@@ -475,6 +486,11 @@ export const getCompetenciasDinamicas = async (nivel) => {
 // Crear nueva competencia
 export const createCompetencia = async (competenciaData) => {
     try {
+        // Validar que niveles sea un array y tenga al menos un elemento
+        if (!competenciaData.niveles || !Array.isArray(competenciaData.niveles) || competenciaData.niveles.length === 0) {
+            return { success: false, error: 'Debe seleccionar al menos un nivel' }
+        }
+
         const docRef = await addDoc(collection(db, 'competencias'), {
             ...competenciaData,
             createdAt: serverTimestamp()
@@ -488,6 +504,13 @@ export const createCompetencia = async (competenciaData) => {
 // Actualizar competencia
 export const updateCompetencia = async (competenciaId, updates) => {
     try {
+        // Validar niveles si se está actualizando
+        if (updates.niveles) {
+            if (!Array.isArray(updates.niveles) || updates.niveles.length === 0) {
+                return { success: false, error: 'Debe seleccionar al menos un nivel' }
+            }
+        }
+
         await updateDoc(doc(db, 'competencias', competenciaId), updates)
         return { success: true }
     } catch (error) {
@@ -512,6 +535,111 @@ export const getAllCompetencias = async () => {
         const competencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         return { success: true, data: competencias }
     } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+// Migrar competencias del formato antiguo (nivel: string) al nuevo (niveles: array)
+export const migrateCompetenciasToMultiLevel = async () => {
+    try {
+        const snapshot = await getDocs(collection(db, 'competencias'))
+        let migratedCount = 0
+        let alreadyMigratedCount = 0
+
+        for (const docSnapshot of snapshot.docs) {
+            const data = docSnapshot.data()
+
+            // Si ya tiene 'niveles' como array, no migrar
+            if (data.niveles && Array.isArray(data.niveles)) {
+                alreadyMigratedCount++
+                continue
+            }
+
+            // Si tiene 'nivel' como string, migrar a array
+            if (data.nivel && typeof data.nivel === 'string') {
+                await updateDoc(doc(db, 'competencias', docSnapshot.id), {
+                    niveles: [data.nivel],
+                    // Mantener el campo antiguo por si acaso
+                    nivel_legacy: data.nivel
+                })
+                migratedCount++
+            }
+        }
+
+        return {
+            success: true,
+            message: `Migración completada. ${migratedCount} competencias migradas, ${alreadyMigratedCount} ya estaban migradas.`,
+            migratedCount,
+            alreadyMigratedCount
+        }
+    } catch (error) {
+        console.error('Error migrating competencias:', error)
+        return { success: false, error: error.message }
+    }
+}
+
+// Consolidar competencias duplicadas (mismo nombre/descripción) en una sola con múltiples niveles
+export const consolidateDuplicateCompetencias = async () => {
+    try {
+        const snapshot = await getDocs(collection(db, 'competencias'))
+        const competencias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+        // Agrupar competencias por nombre (normalizado)
+        const grupos = {}
+
+        competencias.forEach(comp => {
+            const key = comp.nombre.trim().toLowerCase()
+            if (!grupos[key]) {
+                grupos[key] = []
+            }
+            grupos[key].push(comp)
+        })
+
+        let consolidatedCount = 0
+        let deletedCount = 0
+
+        // Procesar cada grupo
+        for (const [key, grupo] of Object.entries(grupos)) {
+            // Si solo hay una competencia en el grupo, no hay nada que consolidar
+            if (grupo.length <= 1) continue
+
+            // Combinar todos los niveles
+            const nivelesSet = new Set()
+            grupo.forEach(comp => {
+                if (comp.niveles && Array.isArray(comp.niveles)) {
+                    comp.niveles.forEach(n => nivelesSet.add(n))
+                } else if (comp.nivel) {
+                    nivelesSet.add(comp.nivel)
+                }
+            })
+
+            const nivelesCombinados = Array.from(nivelesSet)
+
+            // Usar la primera competencia como base
+            const compBase = grupo[0]
+
+            // Actualizar la primera con todos los niveles
+            await updateDoc(doc(db, 'competencias', compBase.id), {
+                niveles: nivelesCombinados
+            })
+
+            // Eliminar las demás
+            for (let i = 1; i < grupo.length; i++) {
+                await deleteDoc(doc(db, 'competencias', grupo[i].id))
+                deletedCount++
+            }
+
+            consolidatedCount++
+        }
+
+        return {
+            success: true,
+            message: `Consolidación completada. ${consolidatedCount} grupos fusionados, ${deletedCount} duplicados eliminados.`,
+            consolidatedCount,
+            deletedCount
+        }
+    } catch (error) {
+        console.error('Error consolidating competencias:', error)
         return { success: false, error: error.message }
     }
 }

@@ -1,0 +1,80 @@
+[
+    {
+        "name": "GUTIÉRREZ LÓPEZ GUADALUPE",
+        "position": "SUPERVISOR DE ACABADOS - GP12",
+        "deparment": "CALIDAD",
+        "role": "2"
+    },
+    {
+        "name": "BIBIANO GARCÍA FLOR",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "1"
+    },
+    {
+        "name": "ARIAS AGUILAR SALMA LIZETH",
+        "position": "SUPERVISOR DE ACABADOS - GP12",
+        "deparment": "CALIDAD",
+        "role": "1"
+    },
+    {
+        "name": "VALDIVIA FRANCO CARLOS ALAIN",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "2"
+    },
+    {
+        "name": "MARTÍNEZ COBOS OMAR",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "3"
+    },
+    {
+        "name": "VÁZQUEZ FLORES ERICK",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "4"
+    },
+    {
+        "name": "OCHOA ORTUÑO JOSÉ MA.",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "3"
+    },
+    {
+        "name": "FLORES IBARRA VICTOR MANUEL",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "5"
+    },
+    {
+        "name": "ORTIZ OLVERA JUAN FIDEL",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "2"
+    },
+    {
+        "name": "PÉREZ SAMANIEGO ISRAEL",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "2"
+    },
+    {
+        "name": "VILLAMAR HINOJOSA DEISY",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "4"
+    },
+    {
+        "name": "DÍAZ GUTIÉRREZ JOSÉ GUADALUPE",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "1"
+    },
+    {
+        "name": "SIXTOS PINEDA LUIS ÁNGEL",
+        "position": "SUPERVISOR DE PRODUCCIÓN",
+        "deparment": "PRODUCCIÓN",
+        "role": "5"
+    }
+]

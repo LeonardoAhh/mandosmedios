@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { getAllUsers, getAllResponses } from '../../config/firebase'
+import { getAllUsers, getAllResponses, getAllSupervisores } from '../../config/firebase'
 import './EmployeeProgress.css'
 
 const EmployeeProgress = () => {
     const [employees, setEmployees] = useState([])
     const [responses, setResponses] = useState([])
+    const [supervisores, setSupervisores] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
@@ -21,10 +22,11 @@ const EmployeeProgress = () => {
             setLoading(true)
             setError(null)
 
-            // Cargar empleados y respuestas en paralelo
-            const [usersResult, responsesResult] = await Promise.all([
+            // Cargar empleados, respuestas y supervisores en paralelo
+            const [usersResult, responsesResult, supervisoresResult] = await Promise.all([
                 getAllUsers(),
-                getAllResponses()
+                getAllResponses(),
+                getAllSupervisores()
             ])
 
             if (!usersResult.success) {
@@ -35,8 +37,13 @@ const EmployeeProgress = () => {
                 throw new Error(responsesResult.error)
             }
 
+            if (!supervisoresResult.success) {
+                throw new Error(supervisoresResult.error)
+            }
+
             setEmployees(usersResult.data || [])
             setResponses(responsesResult.data || [])
+            setSupervisores(supervisoresResult.data || [])
         } catch (err) {
             console.error('Error cargando datos:', err)
             setError(err.message)
@@ -45,9 +52,25 @@ const EmployeeProgress = () => {
         }
     }
 
-    // Verificar si un empleado completó la encuesta
-    const hasCompleted = (employeeId) => {
-        return responses.some(response => response.evaluadorId === employeeId)
+    // Calcular progreso de evaluaciones de un empleado
+    const getEvaluationProgress = (employee) => {
+        // Contar supervisores que debe evaluar (mismo departamento y turno)
+        const totalToEvaluate = supervisores.filter(sup =>
+            sup.department === employee.departamento &&
+            sup.currentShift === employee.turnoFijo
+        ).length
+
+        // Contar cuántos ya evaluó
+        const evaluationsCompleted = responses.filter(response =>
+            response.evaluadorId === employee.id
+        ).length
+
+        return {
+            completed: evaluationsCompleted,
+            total: totalToEvaluate,
+            percentage: totalToEvaluate > 0 ? (evaluationsCompleted / totalToEvaluate) * 100 : 0,
+            isComplete: totalToEvaluate > 0 && evaluationsCompleted === totalToEvaluate
+        }
     }
 
     // Obtener lista única de departamentos
@@ -65,7 +88,7 @@ const EmployeeProgress = () => {
 
     // Calcular estadísticas
     const totalFiltered = filteredEmployees.length
-    const completedCount = filteredEmployees.filter(emp => hasCompleted(emp.id)).length
+    const completedCount = filteredEmployees.filter(emp => getEvaluationProgress(emp).isComplete).length
     const pendingCount = totalFiltered - completedCount
     const completionPercentage = totalFiltered > 0 ? ((completedCount / totalFiltered) * 100).toFixed(1) : 0
 
@@ -182,7 +205,7 @@ const EmployeeProgress = () => {
                             <th>Email</th>
                             <th>Departamento</th>
                             <th>Turno</th>
-                            <th>Estado</th>
+                            <th>Progreso</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -194,24 +217,42 @@ const EmployeeProgress = () => {
                             </tr>
                         ) : (
                             filteredEmployees.map(employee => {
-                                const completed = hasCompleted(employee.id)
+                                const progress = getEvaluationProgress(employee)
+                                const statusClass = progress.isComplete ? 'completed-row' :
+                                    progress.completed > 0 ? 'progress-row' : 'pending-row'
                                 return (
-                                    <tr key={employee.id} className={completed ? 'completed-row' : 'pending-row'}>
+                                    <tr key={employee.id} className={statusClass}>
                                         <td>{employee.employeeNumber || '-'}</td>
                                         <td>{employee.nombre || '-'}</td>
                                         <td className="email-cell">{employee.email || '-'}</td>
                                         <td>{employee.departamento || '-'}</td>
                                         <td className="shift-cell">Turno {employee.turnoFijo || '-'}</td>
-                                        <td className="status-cell">
-                                            {completed ? (
-                                                <span className="status-badge completed">
-                                                    ✅ Completado
-                                                </span>
-                                            ) : (
-                                                <span className="status-badge pending">
-                                                    ⏳ Pendiente
-                                                </span>
-                                            )}
+                                        <td className="progress-cell">
+                                            <div className="progress-info">
+                                                <div className="progress-text">
+                                                    {progress.isComplete ? (
+                                                        <span className="status-badge completed">
+                                                            ✅ {progress.completed}/{progress.total}
+                                                        </span>
+                                                    ) : progress.completed > 0 ? (
+                                                        <span className="status-badge in-progress">
+                                                            🔄 {progress.completed}/{progress.total}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="status-badge not-started">
+                                                            ⏳ {progress.completed}/{progress.total}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {progress.total > 0 && (
+                                                    <div className="progress-bar-container">
+                                                        <div
+                                                            className="progress-bar-fill"
+                                                            style={{ width: `${progress.percentage}%` }}
+                                                        ></div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 )

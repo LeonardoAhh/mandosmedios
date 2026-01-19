@@ -28,9 +28,41 @@ const EncuestaPage = () => {
     const preguntaAbierta = PREGUNTA_ABIERTA?.[profile?.nivel || 'operativo'] ||
         '¿Qué debería mejorar este supervisor para apoyar mejor al equipo?'
 
+    // Key para localStorage (único por evaluador y evaluado)
+    const storageKey = `survey_progress_${profile?.id}_${evaluadoId}`
+
     useEffect(() => {
         loadData()
+        loadSavedProgress()
     }, [evaluadoId, profile])
+
+    // Auto-guardar progreso en localStorage cada vez que cambian las respuestas
+    useEffect(() => {
+        if (evaluadoId && Object.keys(respuestas).length > 0) {
+            localStorage.setItem(storageKey, JSON.stringify({
+                respuestas,
+                comentario,
+                timestamp: Date.now()
+            }))
+        }
+    }, [respuestas, comentario, storageKey, evaluadoId])
+
+    const loadSavedProgress = () => {
+        try {
+            const saved = localStorage.getItem(storageKey)
+            if (saved) {
+                const data = JSON.parse(saved)
+                // Solo cargar si es reciente (menos de 24 horas)
+                const hoursSince = (Date.now() - data.timestamp) / (1000 * 60 * 60)
+                if (hoursSince < 24) {
+                    setRespuestas(data.respuestas || {})
+                    setComentario(data.comentario || '')
+                }
+            }
+        } catch (error) {
+            console.error('Error loading saved progress:', error)
+        }
+    }
 
     const loadData = async () => {
         try {
@@ -72,6 +104,7 @@ const EncuestaPage = () => {
         try {
             const result = await submitResponse({
                 surveyId: 'evaluacion-mandos-medios',
+                evaluadorId: profile?.id, // ID del empleado que evalúa
                 evaluadoId: evaluadoId,
                 evaluadoName: supervisor?.name || 'Desconocido',
                 evaluadoDepartment: supervisor?.department || profile?.departamento,
@@ -82,6 +115,8 @@ const EncuestaPage = () => {
             })
 
             if (result.success) {
+                // Limpiar progreso guardado después de envío exitoso
+                localStorage.removeItem(storageKey)
                 setSuccess(true)
             } else {
                 alert('Error al enviar: ' + result.error)

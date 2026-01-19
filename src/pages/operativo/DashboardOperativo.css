@@ -371,6 +371,22 @@
     transform: translateX(4px);
 }
 
+/* Badge para supervisor ya evaluado */
+.op-evaluated-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--space-3) var(--space-5);
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid var(--success-border);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    margin-top: auto;
+}
+
 /* ========================================
    ESTADO VACÍO
    ======================================== */

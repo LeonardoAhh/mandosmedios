@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { db } from '../../config/firebase'
+import { db, hasEvaluated } from '../../config/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import Loader from '../../components/ui/Loader'
 import { useNavigate } from 'react-router-dom'
@@ -10,6 +10,7 @@ const Dashboard = () => {
     const { profile } = useAuth()
     const navigate = useNavigate()
     const [supervisores, setSupervisores] = useState([])
+    const [evaluatedSupervisors, setEvaluatedSupervisors] = useState(new Set())
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -25,9 +26,22 @@ const Dashboard = () => {
             where('currentShift', '==', turno)
         )
 
-        const unsubscribeSupervisores = onSnapshot(supervisoresQuery, (snapshot) => {
+        const unsubscribeSupervisores = onSnapshot(supervisoresQuery, async (snapshot) => {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
             setSupervisores(data)
+
+            // Verificar qué supervisores ya fueron evaluados
+            if (profile?.id) {
+                const evaluated = new Set()
+                for (const sup of data) {
+                    const result = await hasEvaluated(profile.id, sup.id)
+                    if (result.hasEvaluated) {
+                        evaluated.add(sup.id)
+                    }
+                }
+                setEvaluatedSupervisors(evaluated)
+            }
+
             setLoading(false)
         }, (error) => {
             console.error('Error en listener de supervisores:', error)
@@ -135,28 +149,37 @@ const Dashboard = () => {
                     </div>
                 ) : (
                     <div className="op-supervisores-grid">
-                        {supervisores.map((supervisor) => (
-                            <div key={supervisor.id} className="op-supervisor-card">
-                                <div className="op-supervisor-header">
-                                    <div className="op-supervisor-avatar">
-                                        {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
+                        {supervisores.map((supervisor) => {
+                            const alreadyEvaluated = evaluatedSupervisors.has(supervisor.id)
+                            return (
+                                <div key={supervisor.id} className="op-supervisor-card">
+                                    <div className="op-supervisor-header">
+                                        <div className="op-supervisor-avatar">
+                                            {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
+                                        </div>
+                                        <div className="op-supervisor-info">
+                                            <h3 className="op-supervisor-name">{supervisor.name}</h3>
+                                            <p className="op-supervisor-position">{supervisor.position}</p>
+                                        </div>
                                     </div>
-                                    <div className="op-supervisor-info">
-                                        <h3 className="op-supervisor-name">{supervisor.name}</h3>
-                                        <p className="op-supervisor-position">{supervisor.position}</p>
+                                    <div className="op-supervisor-meta">
+                                        <span className="op-supervisor-dept">{supervisor.department}</span>
                                     </div>
+                                    {alreadyEvaluated ? (
+                                        <div className="op-evaluated-badge">
+                                            ✅ Ya evaluado
+                                        </div>
+                                    ) : (
+                                        <button className="op-btn-evaluar" onClick={() => handleEvaluar(supervisor)}>
+                                            Evaluar
+                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="op-supervisor-meta">
-                                    <span className="op-supervisor-dept">{supervisor.department}</span>
-                                </div>
-                                <button className="op-btn-evaluar" onClick={() => handleEvaluar(supervisor)}>
-                                    Evaluar
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                </button>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
             </section>

@@ -340,14 +340,17 @@ export const deleteSurvey = async (surveyId) => {
 
 export const submitResponse = async (responseData) => {
     try {
-        // IMPORTANTE: No guardamos el ID del evaluador para mantener anonimato
         const docRef = await addDoc(collection(db, 'responses'), {
             surveyId: responseData.surveyId,
+            evaluadorId: responseData.evaluadorId, // Guardar para tracking de progreso
             evaluadoId: responseData.evaluadoId,
+            evaluadoName: responseData.evaluadoName || '',
+            evaluadoDepartment: responseData.evaluadoDepartment || '',
+            turno: responseData.turno || 1,
+            departamento: responseData.departamento || '',
             respuestas: responseData.respuestas,
             comentario: responseData.comentario || '',
             fecha: serverTimestamp()
-            // NO incluimos evaluadorId para anonimato
         })
         return { success: true, id: docRef.id }
     } catch (error) {
@@ -380,6 +383,21 @@ export const getResponsesByEvaluado = async (evaluadoId) => {
         return { success: true, data: responses }
     } catch (error) {
         return { success: false, error: error.message }
+    }
+}
+
+// Verificar si un empleado ya evaluó a un supervisor específico
+export const hasEvaluated = async (evaluadorId, evaluadoId) => {
+    try {
+        const q = query(
+            collection(db, 'responses'),
+            where('evaluadorId', '==', evaluadorId),
+            where('evaluadoId', '==', evaluadoId)
+        )
+        const snapshot = await getDocs(q)
+        return { success: true, hasEvaluated: !snapshot.empty }
+    } catch (error) {
+        return { success: false, error: error.message, hasEvaluated: false }
     }
 }
 

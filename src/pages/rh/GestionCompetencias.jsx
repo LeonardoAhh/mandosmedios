@@ -393,24 +393,6 @@ const GestionCompetencias = () => {
                         </button>
                     )}
                 </div>
-
-                <div className="gc-filters">
-                    <button
-                        className={`gc-filter-btn ${filterNivel === 'all' ? 'active' : ''}`}
-                        onClick={() => setFilterNivel('all')}
-                    >
-                        Todas
-                    </button>
-                    {Object.entries(nivelLabels).map(([nivel, label]) => (
-                        <button
-                            key={nivel}
-                            className={`gc-filter-btn ${filterNivel === nivel ? 'active' : ''}`}
-                            onClick={() => setFilterNivel(nivel)}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
             </div>
 
             {/* Lista de Competencias */}

@@ -348,27 +348,7 @@ const GestionCompetencias = () => {
                 </div>
             )}
 
-            {/* Estadísticas */}
-            <div className="gc-stats">
-                <div className="gc-stat-card">
-                    <div className="gc-stat-value">{stats.total}</div>
-                    <div className="gc-stat-label">Total de Competencias</div>
-                </div>
-                <div className="gc-stat-card gc-stat-operativo">
-                    <div className="gc-stat-value">{stats.operativo}</div>
-                    <div className="gc-stat-label">Operativo</div>
-                </div>
-                <div className="gc-stat-card gc-stat-mando">
-                    <div className="gc-stat-value">{stats.mandoMedio}</div>
-                    <div className="gc-stat-label">Mando Medio</div>
-                </div>
-                <div className="gc-stat-card gc-stat-jefe">
-                    <div className="gc-stat-value">{stats.jefeDirecto}</div>
-                    <div className="gc-stat-label">Jefe Directo</div>
-                </div>
-            </div>
-
-            {/* Barra de búsqueda y filtros */}
+            {/* Barra de búsqueda */}
             <div className="gc-controls">
                 <div className="gc-search-container">
                     <svg className="gc-search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">

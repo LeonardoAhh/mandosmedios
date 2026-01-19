@@ -312,29 +312,6 @@ const GestionCompetencias = () => {
                     </p>
                 </div>
                 <div className="gc-header-actions">
-                    <button
-                        className="gc-btn-migrate"
-                        onClick={handleMigrate}
-                        disabled={submitting}
-                        title="Migrar competencias al formato multi-nivel"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M4 10h12M13 7l3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span>Migrar Datos</span>
-                    </button>
-                    <button
-                        className="gc-btn-consolidate"
-                        onClick={handleConsolidate}
-                        disabled={submitting}
-                        title="Consolidar preguntas duplicadas en una sola card"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2v-2M12 4h2a2 2 0 012 2v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M10 14l4-4m0 0l-4-4m4 4H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span>Consolidar</span>
-                    </button>
                     {competencias.length === 0 && (
                         <button
                             className="gc-btn-init"

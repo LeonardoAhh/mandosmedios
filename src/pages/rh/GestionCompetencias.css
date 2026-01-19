@@ -1,0 +1,954 @@
+/* ========================================
+   GESTIÓN DE COMPETENCIAS - ESTILOS MINIMALISTAS
+   ======================================== */
+
+.gestion-competencias {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+
+.gc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.gc-header-content {
+    flex: 1;
+}
+
+.gc-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.02em;
+}
+
+.gc-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+    font-weight: 400;
+}
+
+.gc-header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.gc-btn-new,
+.gc-btn-init,
+.gc-btn-migrate,
+.gc-btn-consolidate {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.gc-btn-new {
+    background: #3b82f6;
+    color: white;
+}
+
+.gc-btn-new:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.gc-btn-init {
+    background: white;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+}
+
+.gc-btn-init:hover {
+    background: #eff6ff;
+}
+
+.gc-btn-migrate {
+    background: white;
+    color: #8b5cf6;
+    border: 2px solid #8b5cf6;
+}
+
+.gc-btn-migrate:hover {
+    background: #f5f3ff;
+}
+
+.gc-btn-consolidate {
+    background: white;
+    color: #10b981;
+    border: 2px solid #10b981;
+}
+
+.gc-btn-consolidate:hover {
+    background: #f0fdf4;
+}
+
+.gc-btn-new:disabled,
+.gc-btn-init:disabled,
+.gc-btn-migrate:disabled,
+.gc-btn-consolidate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.gc-btn-new svg,
+.gc-btn-init svg,
+.gc-btn-migrate svg,
+.gc-btn-consolidate svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ========================================
+   MENSAJE DE INICIALIZACIÓN
+   ======================================== */
+
+.gc-init-message {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 0.75rem;
+    color: #15803d;
+    margin-bottom: 2rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gc-init-message svg {
+    flex-shrink: 0;
+}
+
+/* ========================================
+   ESTADÍSTICAS
+   ======================================== */
+
+.gc-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.gc-stat-card {
+    background: white;
+    padding: 1.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.gc-stat-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.gc-stat-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+    line-height: 1;
+}
+
+.gc-stat-operativo .gc-stat-value {
+    color: #10b981;
+}
+
+.gc-stat-mando .gc-stat-value {
+    color: #f59e0b;
+}
+
+.gc-stat-jefe .gc-stat-value {
+    color: #8b5cf6;
+}
+
+.gc-stat-label {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* ========================================
+   CONTROLES (BÚSQUEDA Y FILTROS)
+   ======================================== */
+
+.gc-controls {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.gc-search-container {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.gc-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.gc-search-input {
+    width: 100%;
+    padding: 0.875rem 3rem 0.875rem 3rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    background: #fafafa;
+}
+
+.gc-search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.gc-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.gc-search-clear {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.gc-search-clear:hover {
+    background: #f3f4f6;
+    color: #1a1a1a;
+}
+
+.gc-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.gc-filter-btn {
+    padding: 0.625rem 1.25rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gc-filter-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.gc-filter-btn.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* ========================================
+   LISTA DE COMPETENCIAS
+   ======================================== */
+
+.gc-competencias-container {
+    margin-bottom: 2rem;
+}
+
+.gc-competencias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.25rem;
+}
+
+.gc-competencia-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.gc-competencia-card:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.gc-competencia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.gc-competencia-orden {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.625rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    min-width: 60px;
+}
+
+.gc-orden-label {
+    font-size: 0.6875rem;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.gc-orden-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #3b82f6;
+    line-height: 1;
+}
+
+.gc-competencia-nivel {
+    padding: 0.375rem 0.875rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+}
+
+.gc-nivel-operativo {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.gc-nivel-mando_medio {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.gc-nivel-jefe_directo {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+/* Badges de niveles múltiples */
+.gc-competencia-niveles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.gc-nivel-badge {
+    padding: 0.375rem 0.875rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.gc-competencia-body {
+    flex: 1;
+}
+
+.gc-competencia-nombre {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+}
+
+.gc-competencia-descripcion {
+    font-size: 0.875rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.gc-competencia-flow {
+    padding: 0.75rem 1rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gc-flow-text {
+    font-size: 0.8125rem;
+    color: #0369a1;
+    font-weight: 600;
+    text-align: center;
+}
+
+.gc-competencia-actions {
+    display: flex;
+    gap: 0.625rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.gc-action-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    color: #4b5563;
+}
+
+.gc-action-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.gc-action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.gc-action-edit {
+    color: #3b82f6;
+    border-color: #dbeafe;
+}
+
+.gc-action-edit:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.gc-action-delete {
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.gc-action-delete:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+}
+
+/* ========================================
+   ESTADO VACÍO
+   ======================================== */
+
+.gc-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.gc-empty svg {
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+}
+
+.gc-empty h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 0.5rem 0;
+}
+
+.gc-empty p {
+    font-size: 0.9375rem;
+    color: #666;
+    margin: 0;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+}
+
+/* ========================================
+   MODAL
+   ======================================== */
+
+.gc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.gc-modal {
+    background: white;
+    border-radius: 1rem;
+    max-width: 650px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gc-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.gc-modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.gc-modal-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.gc-modal-close:hover {
+    background: #f3f4f6;
+    color: #1a1a1a;
+}
+
+.gc-modal-form {
+    padding: 2rem;
+}
+
+.gc-form-error {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+    color: #991b1b;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.gc-form-error svg {
+    flex-shrink: 0;
+    color: #dc2626;
+}
+
+.gc-form-section {
+    margin-bottom: 2rem;
+}
+
+.gc-form-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.gc-form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 1.25rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.gc-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.gc-form-group:last-child {
+    margin-bottom: 0;
+}
+
+.gc-form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.25rem;
+}
+
+.gc-form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.gc-form-select,
+.gc-form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.gc-form-select {
+    background: white;
+    cursor: pointer;
+}
+
+.gc-form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+}
+
+.gc-form-select:focus,
+.gc-form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.gc-form-help {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.8125rem;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+/* Checkboxes de niveles múltiples */
+.gc-niveles-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.gc-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.625rem;
+    border-radius: 0.375rem;
+    transition: background 0.2s ease;
+}
+
+.gc-checkbox-label:hover {
+    background: white;
+}
+
+.gc-checkbox-label.checked {
+    background: white;
+}
+
+.gc-checkbox-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+.gc-checkbox-badge {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.gc-checkbox-label:not(.checked) .gc-checkbox-badge {
+    color: #6b7280;
+}
+
+.gc-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .gc-competencias-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .gestion-competencias {
+        padding: 1.5rem 1rem;
+    }
+
+    .gc-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+    }
+
+    .gc-header-actions {
+        width: 100%;
+    }
+
+    .gc-btn-new,
+    .gc-btn-init {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .gc-title {
+        font-size: 1.75rem;
+    }
+
+    .gc-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .gc-stat-card {
+        padding: 1.25rem;
+    }
+
+    .gc-stat-value {
+        font-size: 1.875rem;
+    }
+
+    .gc-controls {
+        padding: 1.25rem;
+    }
+
+    .gc-filters {
+        gap: 0.5rem;
+    }
+
+    .gc-filter-btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .gc-competencias-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gc-competencia-actions {
+        flex-direction: column;
+    }
+
+    .gc-action-btn {
+        width: 100%;
+    }
+
+    .gc-modal {
+        max-height: 95vh;
+    }
+
+    .gc-modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .gc-modal-title {
+        font-size: 1.25rem;
+    }
+
+    .gc-modal-form {
+        padding: 1.5rem;
+    }
+
+    .gc-form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .gc-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .gc-modal-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .gestion-competencias {
+        padding: 1rem;
+    }
+
+    .gc-title {
+        font-size: 1.5rem;
+    }
+
+    .gc-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .gc-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .gc-stat-value {
+        font-size: 2rem;
+    }
+
+    .gc-search-input {
+        padding: 0.75rem 2.5rem 0.75rem 2.75rem;
+        font-size: 0.875rem;
+    }
+
+    .gc-competencia-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gc-competencia-orden {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .gc-competencia-nombre {
+        font-size: 1rem;
+    }
+
+    .gc-competencia-descripcion {
+        font-size: 0.8125rem;
+    }
+
+    .gc-modal-form {
+        padding: 1.25rem;
+    }
+
+    .gc-form-section-title {
+        font-size: 0.9375rem;
+    }
+}
+
+/* ========================================
+   MEJORAS DE ACCESIBILIDAD
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible para accesibilidad de teclado */
+button:focus-visible,
+.gc-search-input:focus-visible,
+.gc-form-select:focus-visible,
+.gc-form-textarea:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}

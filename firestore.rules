@@ -1,0 +1,88 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // =====================
+    // FUNCIÓN HELPER
+    // =====================
+    // Verificar si el usuario actual tiene rol de RH
+    function isRH() {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.rol == 'rh';
+    }
+    
+    // Verificar si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // =====================
+    // USUARIOS
+    // =====================
+    match /users/{userId} {
+      // Los usuarios pueden leer su propio perfil
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // RH puede leer todos los usuarios
+      allow read: if isRH();
+      
+      // RH puede crear, actualizar y eliminar usuarios
+      allow create, update, delete: if isRH();
+      
+      // Usuarios pueden actualizar su propio turnoActual y lastLogin
+      allow update: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['turnoActual', 'lastLogin']);
+    }
+    
+    // =====================
+    // SUPERVISORES
+    // =====================
+    match /supervisores/{supervisorId} {
+      // Todos los usuarios autenticados pueden leer supervisores
+      allow read: if isAuthenticated();
+      
+      // Solo RH puede crear, actualizar o eliminar supervisores
+      allow create, update, delete: if isRH();
+    }
+    
+    // =====================
+    // COMPETENCIAS (Preguntas de Evaluación)
+    // =====================
+    match /competencias/{competenciaId} {
+      // Todos los usuarios autenticados pueden leer competencias
+      allow read: if isAuthenticated();
+      
+      // Solo RH puede crear, actualizar o eliminar competencias
+      allow create, update, delete: if isRH();
+    }
+    
+    // =====================
+    // ENCUESTAS (Surveys)
+    // =====================
+    match /surveys/{surveyId} {
+      // Todos los usuarios autenticados pueden leer encuestas
+      allow read: if isAuthenticated();
+      
+      // Solo RH puede crear, actualizar o eliminar encuestas
+      allow create, update, delete: if isRH();
+    }
+    
+    // =====================
+    // RESPUESTAS (Responses - Evaluaciones Anónimas)
+    // =====================
+    match /responses/{responseId} {
+      // Cualquier usuario autenticado puede crear respuestas
+      // IMPORTANTE: Las respuestas son anónimas
+      allow create: if isAuthenticated();
+      
+      // Solo RH puede leer todas las respuestas
+      allow read: if isRH();
+      
+      // SEGURIDAD: No se pueden modificar ni eliminar respuestas
+      // Una vez creadas, son inmutables para mantener integridad
+      allow update, delete: if false;
+    }
+  }
+}

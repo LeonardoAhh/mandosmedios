@@ -132,24 +132,6 @@ const GestionEncuestas = () => {
                 </button>
             </header>
 
-            {/* Estadísticas Rápidas */}
-            {surveys.length > 0 && (
-                <div className="quick-stats">
-                    <div className="stat-card">
-                        <div className="stat-value">{totalSurveys}</div>
-                        <div className="stat-label">Total Encuestas</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-value highlight">{activeSurveys}</div>
-                        <div className="stat-label">Activas</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-value">{totalSurveys - activeSurveys}</div>
-                        <div className="stat-label">Inactivas</div>
-                    </div>
-                </div>
-            )}
-
             {/* Lista de Encuestas */}
             <div className="surveys-grid">
                 {surveys.length === 0 ? (

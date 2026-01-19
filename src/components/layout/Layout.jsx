@@ -46,7 +46,7 @@ const Layout = ({ children }) => {
         },
         {
             path: '/rh/supervisores',
-            label: 'Supervisores',
+            label: 'Evaluados',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M16 17v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM18 17v-1a3 3 0 0 0-2-2.83M14 3.17a3 3 0 0 1 0 5.66" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -55,7 +55,7 @@ const Layout = ({ children }) => {
         },
         {
             path: '/rh/competencias',
-            label: 'Competencias',
+            label: 'Preguntas',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />

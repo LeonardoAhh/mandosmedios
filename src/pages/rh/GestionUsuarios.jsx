@@ -272,27 +272,7 @@ const GestionUsuarios = () => {
                 </button>
             </header>
 
-            {/* Estadísticas */}
-            <div className="gu-stats">
-                <div className="gu-stat-card">
-                    <div className="gu-stat-value">{stats.total}</div>
-                    <div className="gu-stat-label">Total de Usuarios</div>
-                </div>
-                <div className="gu-stat-card gu-stat-admin">
-                    <div className="gu-stat-value">{stats.rh}</div>
-                    <div className="gu-stat-label">Administradores</div>
-                </div>
-                <div className="gu-stat-card">
-                    <div className="gu-stat-value">{stats.operativo}</div>
-                    <div className="gu-stat-label">Nivel Operativo</div>
-                </div>
-                <div className="gu-stat-card">
-                    <div className="gu-stat-value">{stats.mandoMedio}</div>
-                    <div className="gu-stat-label">Mandos Medios</div>
-                </div>
-            </div>
-
-            {/* Barra de búsqueda y filtros */}
+            {/* Barra de búsqueda */}
             <div className="gu-controls">
                 <div className="gu-search-container">
                     <svg className="gu-search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -316,30 +296,6 @@ const GestionUsuarios = () => {
                             </svg>
                         </button>
                     )}
-                </div>
-
-                <div className="gu-filters">
-                    <button
-                        className={`gu-filter-btn ${filter === 'all' ? 'active' : ''}`}
-                        onClick={() => setFilter('all')}
-                    >
-                        Todos
-                    </button>
-                    <button
-                        className={`gu-filter-btn ${filter === 'rh' ? 'active' : ''}`}
-                        onClick={() => setFilter('rh')}
-                    >
-                        Administradores
-                    </button>
-                    {NIVELES.map(nivel => (
-                        <button
-                            key={nivel.id}
-                            className={`gu-filter-btn ${filter === nivel.id ? 'active' : ''}`}
-                            onClick={() => setFilter(nivel.id)}
-                        >
-                            {nivel.nombre}
-                        </button>
-                    ))}
                 </div>
             </div>
 

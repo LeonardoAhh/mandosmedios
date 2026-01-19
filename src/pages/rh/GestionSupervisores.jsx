@@ -212,21 +212,6 @@ const GestionSupervisores = () => {
                 </select>
             </div>
 
-            {/* Stats */}
-            <div className="gs-stats">
-                <div className="gs-stat-card">
-                    <span className="gs-stat-value">{supervisores.length}</span>
-                    <span className="gs-stat-label">Total Evaluadores</span>
-                </div>
-                <div className="gs-stat-card">
-                    <span className="gs-stat-value">{supervisores.filter(s => s.position?.includes('SUPERVISOR')).length}</span>
-                    <span className="gs-stat-label">Supervisores</span>
-                </div>
-                <div className="gs-stat-card">
-                    <span className="gs-stat-value">{supervisores.filter(s => s.position?.includes('AUXILIAR')).length}</span>
-                    <span className="gs-stat-label">Auxiliares</span>
-                </div>
-            </div>
 
             {/* Tabla */}
             <div className="gs-table-container">

@@ -64,6 +64,15 @@ const Layout = ({ children }) => {
             )
         },
         {
+            path: '/rh/progreso',
+            label: 'Progreso',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M2 10h4l3-6 4 12 3-6h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            )
+        },
+        {
             path: '/rh/reportes',
             label: 'Reportes',
             icon: (

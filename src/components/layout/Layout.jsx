@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import Button from '../ui/Button'
@@ -7,6 +8,15 @@ const Layout = ({ children }) => {
     const { profile, logout } = useAuth()
     const navigate = useNavigate()
     const isRH = profile?.rol === 'rh'
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen)
+    }
+
+    const closeMobileMenu = () => {
+        setIsMobileMenuOpen(false)
+    }
 
     const handleLogout = async () => {
         await logout()
@@ -95,8 +105,24 @@ const Layout = ({ children }) => {
 
     return (
         <div className="layout">
+            {/* Hamburger Button para Tablet */}
+            <button
+                className="mobile-menu-toggle"
+                onClick={toggleMobileMenu}
+                aria-label="Toggle menu"
+            >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+            </button>
+
+            {/* Overlay para tablet */}
+            {isMobileMenuOpen && (
+                <div className="sidebar-overlay" onClick={closeMobileMenu}></div>
+            )}
+
             {/* Sidebar Desktop */}
-            <aside className="sidebar">
+            <aside className={`sidebar ${isMobileMenuOpen ? 'sidebar-open' : ''}`}>
                 <div className="sidebar-header">
                     <div className="logo">
                         <div className="logo-icon">
@@ -127,6 +153,7 @@ const Layout = ({ children }) => {
                             className={({ isActive }) =>
                                 `nav-item ${isActive ? 'nav-item-active' : ''}`
                             }
+                            onClick={closeMobileMenu}
                         >
                             <span className="nav-icon">{item.icon}</span>
                             <span className="nav-label">{item.label}</span>

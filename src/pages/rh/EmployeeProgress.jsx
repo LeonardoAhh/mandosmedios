@@ -197,69 +197,73 @@ const EmployeeProgress = () => {
 
             {/* Tabla de empleados */}
             <div className="table-container">
-                <table className="employees-table">
-                    <thead>
-                        <tr>
-                            <th>N° Empleado</th>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Departamento</th>
-                            <th>Turno</th>
-                            <th>Progreso</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredEmployees.length === 0 ? (
+                {/* ✅ AGREGADO: Wrapper para scroll horizontal */}
+                <div className="table-wrapper">
+                    <table className="employees-table">
+                        <thead>
                             <tr>
-                                <td colSpan="6" className="no-data">
-                                    No se encontraron empleados con los filtros seleccionados
-                                </td>
+                                <th>N° Empleado</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Departamento</th>
+                                <th>Turno</th>
+                                <th>Progreso</th>
                             </tr>
-                        ) : (
-                            filteredEmployees.map(employee => {
-                                const progress = getEvaluationProgress(employee)
-                                const statusClass = progress.isComplete ? 'completed-row' :
-                                    progress.completed > 0 ? 'progress-row' : 'pending-row'
-                                return (
-                                    <tr key={employee.id} className={statusClass}>
-                                        <td>{employee.employeeNumber || '-'}</td>
-                                        <td>{employee.nombre || '-'}</td>
-                                        <td className="email-cell">{employee.email || '-'}</td>
-                                        <td>{employee.departamento || '-'}</td>
-                                        <td className="shift-cell">Turno {employee.turnoFijo || '-'}</td>
-                                        <td className="progress-cell">
-                                            <div className="progress-info">
-                                                <div className="progress-text">
-                                                    {progress.isComplete ? (
-                                                        <span className="status-badge completed">
-                                                            ✅ {progress.completed}/{progress.total}
-                                                        </span>
-                                                    ) : progress.completed > 0 ? (
-                                                        <span className="status-badge in-progress">
-                                                            🔄 {progress.completed}/{progress.total}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="status-badge not-started">
-                                                            ⏳ {progress.completed}/{progress.total}
-                                                        </span>
+                        </thead>
+                        <tbody>
+                            {filteredEmployees.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="no-data">
+                                        No se encontraron empleados con los filtros seleccionados
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredEmployees.map(employee => {
+                                    const progress = getEvaluationProgress(employee)
+                                    const statusClass = progress.isComplete ? 'completed-row' :
+                                        progress.completed > 0 ? 'progress-row' : 'pending-row'
+                                    return (
+                                        <tr key={employee.id} className={statusClass}>
+                                            <td>{employee.employeeNumber || '-'}</td>
+                                            {/* ✅ CORREGIDO: Agregada clase name-cell */}
+                                            <td className="name-cell">{employee.nombre || '-'}</td>
+                                            <td className="email-cell">{employee.email || '-'}</td>
+                                            <td>{employee.departamento || '-'}</td>
+                                            <td className="shift-cell">Turno {employee.turnoFijo || '-'}</td>
+                                            <td className="progress-cell">
+                                                <div className="progress-info">
+                                                    <div className="progress-text">
+                                                        {progress.isComplete ? (
+                                                            <span className="status-badge completed">
+                                                                ✅ {progress.completed}/{progress.total}
+                                                            </span>
+                                                        ) : progress.completed > 0 ? (
+                                                            <span className="status-badge in-progress">
+                                                                🔄 {progress.completed}/{progress.total}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="status-badge not-started">
+                                                                ⏳ {progress.completed}/{progress.total}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {progress.total > 0 && (
+                                                        <div className="progress-bar-container">
+                                                            <div
+                                                                className="progress-bar-fill"
+                                                                style={{ width: `${progress.percentage}%` }}
+                                                            ></div>
+                                                        </div>
                                                     )}
                                                 </div>
-                                                {progress.total > 0 && (
-                                                    <div className="progress-bar-container">
-                                                        <div
-                                                            className="progress-bar-fill"
-                                                            style={{ width: `${progress.percentage}%` }}
-                                                        ></div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )
-                            })
-                        )}
-                    </tbody>
-                </table>
+                                            </td>
+                                        </tr>
+                                    )
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     )

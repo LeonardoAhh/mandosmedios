@@ -913,3 +913,63 @@
 .op-supervisor-card:nth-child(6) {
     animation-delay: 250ms;
 }
+
+/* ========================================
+   ERROR BANNER
+   ======================================== */
+
+.op-error-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--danger-bg, #fef2f2);
+    border: 1px solid var(--danger-border, #fecaca);
+    border-radius: var(--radius-lg);
+    color: var(--danger, #dc2626);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin-bottom: var(--space-6);
+    animation: errorSlideIn 0.3s ease-out;
+}
+
+.op-error-banner svg {
+    flex-shrink: 0;
+}
+
+.op-error-banner span {
+    flex: 1;
+}
+
+.op-error-close {
+    background: none;
+    border: none;
+    color: var(--danger, #dc2626);
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    transition: background var(--transition-fast);
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.op-error-close:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+@keyframes errorSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

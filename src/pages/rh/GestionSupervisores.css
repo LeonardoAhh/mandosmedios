@@ -327,3 +327,59 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== ERROR BANNER ===== */
+.gs-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--danger-bg, #fef2f2);
+    border: 1px solid var(--danger-border, #fecaca);
+    border-radius: var(--radius-lg, 0.5rem);
+    color: var(--danger, #dc2626);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    animation: gsErrorSlideIn 0.3s ease-out;
+}
+
+.gs-error-banner svg {
+    flex-shrink: 0;
+}
+
+.gs-error-banner span {
+    flex: 1;
+}
+
+.gs-error-close {
+    background: none;
+    border: none;
+    color: var(--danger, #dc2626);
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+.gs-error-close:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+@keyframes gsErrorSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

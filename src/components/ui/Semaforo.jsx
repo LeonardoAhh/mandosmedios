@@ -10,11 +10,15 @@ const Semaforo = ({ valor, showLabel = true, size = 'md' }) => {
     const status = getStatus()
 
     return (
-        <div className={`semaforo semaforo-${status.color} semaforo-${size}`}>
+        <div
+            className={`semaforo semaforo-${status.color} semaforo-${size}`}
+            role="status"
+            aria-label={`Calificación: ${valor.toFixed(1)} — ${status.label}`}
+        >
             <div className="semaforo-indicator">
                 <span className="semaforo-value">{valor.toFixed(1)}</span>
             </div>
-            {showLabel && <span className="semaforo-label">{status.label}</span>}
+            {showLabel && <span className="semaforo-label" aria-hidden="true">{status.label}</span>}
         </div>
     )
 }

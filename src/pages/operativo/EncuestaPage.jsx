@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
     submitResponse,
@@ -23,13 +23,17 @@ const EncuestaPage = () => {
     const [comentario, setComentario] = useState('')
     const [success, setSuccess] = useState(false)
     const [competencias, setCompetencias] = useState([])
+    const [error, setError] = useState(null)
 
     // Pregunta abierta según nivel (por defecto operativo)
     const preguntaAbierta = PREGUNTA_ABIERTA?.[profile?.nivel || 'operativo'] ||
         '¿Qué debería mejorar este supervisor para apoyar mejor al equipo?'
 
     // Key para localStorage (único por evaluador y evaluado)
-    const storageKey = `survey_progress_${profile?.id}_${evaluadoId}`
+    const storageKey = useMemo(
+        () => `survey_progress_${profile?.id}_${evaluadoId}`,
+        [profile?.id, evaluadoId]
+    )
 
     useEffect(() => {
         loadData()
@@ -47,6 +51,13 @@ const EncuestaPage = () => {
         }
     }, [respuestas, comentario, storageKey, evaluadoId])
 
+    // Auto-dismiss error después de 6 segundos
+    useEffect(() => {
+        if (!error) return
+        const timer = setTimeout(() => setError(null), 6000)
+        return () => clearTimeout(timer)
+    }, [error])
+
     const loadSavedProgress = () => {
         try {
             const saved = localStorage.getItem(storageKey)
@@ -59,8 +70,8 @@ const EncuestaPage = () => {
                     setComentario(data.comentario || '')
                 }
             }
-        } catch (error) {
-            console.error('Error loading saved progress:', error)
+        } catch (err) {
+            console.error('Error loading saved progress:', err)
         }
     }
 
@@ -73,6 +84,7 @@ const EncuestaPage = () => {
                 setCompetencias(compResult.data)
             } else {
                 console.error('Error cargando competencias:', compResult.error)
+                setError('No se pudieron cargar las competencias.')
             }
 
             // Cargar información del supervisor
@@ -85,26 +97,33 @@ const EncuestaPage = () => {
                     }
                 }
             }
-        } catch (error) {
-            console.error('Error loading data:', error)
+        } catch (err) {
+            console.error('Error loading data:', err)
+            setError('Error al cargar la información. Intenta recargar la página.')
         } finally {
             setLoading(false)
         }
     }
 
-    const handleRatingChange = (competenciaId, valor) => {
+    const handleRatingChange = useCallback((competenciaId, valor) => {
         setRespuestas(prev => ({
             ...prev,
             [competenciaId]: valor
         }))
-    }
+    }, [])
 
-    const handleSubmit = async () => {
+    const handleComentarioChange = useCallback((e) => {
+        setComentario(e.target.value)
+    }, [])
+
+    const handleSubmit = useCallback(async () => {
         setSubmitting(true)
+        setError(null)
+
         try {
             const result = await submitResponse({
                 surveyId: 'evaluacion-mandos-medios',
-                evaluadorId: profile?.id, // ID del empleado que evalúa
+                evaluadorId: profile?.id,
                 evaluadoId: evaluadoId,
                 evaluadoName: supervisor?.name || 'Desconocido',
                 evaluadoDepartment: supervisor?.department || profile?.departamento,
@@ -119,15 +138,18 @@ const EncuestaPage = () => {
                 localStorage.removeItem(storageKey)
                 setSuccess(true)
             } else {
-                alert('Error al enviar: ' + result.error)
+                setError('Error al enviar: ' + result.error)
             }
-        } catch (error) {
-            console.error('Error submitting:', error)
-            alert('Error al enviar la evaluación')
+        } catch (err) {
+            console.error('Error submitting:', err)
+            setError('Error al enviar la evaluación. Intenta nuevamente.')
         } finally {
             setSubmitting(false)
         }
-    }
+    }, [profile, evaluadoId, supervisor, respuestas, comentario, storageKey])
+
+    const handleGoBack = useCallback(() => navigate(-1), [navigate])
+    const handleGoHome = useCallback(() => navigate('/encuestas'), [navigate])
 
     const answeredCount = Object.keys(respuestas).length
     const totalQuestions = competencias.length
@@ -143,9 +165,9 @@ const EncuestaPage = () => {
     if (success) {
         return (
             <div className="encuesta-page success-page">
-                <div className="success-card">
+                <div className="success-card" role="status">
                     <div className="success-content">
-                        <div className="success-icon-wrapper">
+                        <div className="success-icon-wrapper" aria-hidden="true">
                             <span className="success-icon">✓</span>
                         </div>
                         <h2>¡Gracias por tu evaluación!</h2>
@@ -153,7 +175,7 @@ const EncuestaPage = () => {
                         <p className="success-note">
                             Tu opinión ayuda a mejorar el liderazgo en la organización.
                         </p>
-                        <button className="success-btn" onClick={() => navigate('/encuestas')}>
+                        <button className="success-btn" onClick={handleGoHome}>
                             Volver al inicio
                         </button>
                     </div>
@@ -164,15 +186,27 @@ const EncuestaPage = () => {
 
     return (
         <div className="encuesta-page">
+            {/* Error Banner */}
+            {error && (
+                <div className="encuesta-error-banner" role="alert">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="2" />
+                        <path d="M10 6v4M10 14h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    <span>{error}</span>
+                    <button onClick={() => setError(null)} className="encuesta-error-close" aria-label="Cerrar aviso">×</button>
+                </div>
+            )}
+
             {/* Header */}
-            <header className="encuesta-header">
-                <button className="back-btn" onClick={() => navigate(-1)}>
+            <header className="encuesta-header" aria-label="Información de evaluación">
+                <button className="back-btn" onClick={handleGoBack} aria-label="Volver atrás">
                     ← Volver
                 </button>
                 <h1 className="encuesta-title">Evaluación de Liderazgo</h1>
                 {supervisor && (
                     <div className="encuesta-supervisor">
-                        <div className="supervisor-avatar">
+                        <div className="supervisor-avatar" aria-hidden="true">
                             {supervisor.name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                         <div className="supervisor-details">
@@ -185,10 +219,16 @@ const EncuestaPage = () => {
             </header>
 
             {/* Barra de Progreso */}
-            <div className="progress-container">
+            <div className="progress-container"
+                role="progressbar"
+                aria-valuenow={answeredCount}
+                aria-valuemin={0}
+                aria-valuemax={totalQuestions}
+                aria-label={`Progreso: ${answeredCount} de ${totalQuestions} preguntas respondidas`}
+            >
                 <div className="progress-header">
                     <span className="progress-title">Tu progreso</span>
-                    <span className="progress-count">
+                    <span className="progress-count" aria-hidden="true">
                         <strong>{answeredCount}</strong> de {totalQuestions}
                     </span>
                 </div>
@@ -201,13 +241,13 @@ const EncuestaPage = () => {
             </div>
 
             {/* Recordatorio */}
-            <div className="reminder-card">
-                <span>🔒</span>
+            <div className="reminder-card" role="note">
+                <span aria-hidden="true">🔒</span>
                 <p>Tus respuestas son <strong>100% anónimas</strong></p>
             </div>
 
             {/* Preguntas - Competencias dinámicas de Firestore */}
-            <div className="questions-container">
+            <div className="questions-container" aria-label="Preguntas de evaluación">
                 {competencias.map((competencia, index) => (
                     <RatingScale
                         key={competencia.id}
@@ -222,24 +262,26 @@ const EncuestaPage = () => {
             {/* Pregunta Abierta */}
             <div className="open-question">
                 <div className="open-question-header">
-                    <div className="open-question-icon">💬</div>
-                    <h3>
+                    <div className="open-question-icon" aria-hidden="true">💬</div>
+                    <h3 id="comentario-label">
                         Comentario
                         <span className="optional-tag">(opcional)</span>
                     </h3>
                 </div>
-                <p className="question-description">
+                <p className="question-description" id="comentario-desc">
                     {preguntaAbierta}
                 </p>
                 <textarea
                     className="comment-input"
                     value={comentario}
-                    onChange={(e) => setComentario(e.target.value)}
+                    onChange={handleComentarioChange}
                     placeholder="Escribe tu comentario aquí..."
                     maxLength={500}
                     rows={4}
+                    aria-labelledby="comentario-label"
+                    aria-describedby="comentario-desc comentario-count"
                 />
-                <span className="char-count">{comentario.length}/500</span>
+                <span id="comentario-count" className="char-count" aria-live="polite">{comentario.length}/500</span>
             </div>
 
             {/* Botón de Envío */}
@@ -249,6 +291,8 @@ const EncuestaPage = () => {
                         className={`submit-btn ${submitting ? 'loading' : ''}`}
                         onClick={handleSubmit}
                         disabled={!canSubmit || submitting}
+                        aria-busy={submitting || undefined}
+                        aria-label={canSubmit ? 'Enviar evaluación' : `Faltan ${remaining} preguntas por responder`}
                     >
                         {submitting ? (
                             <>Enviando...</>

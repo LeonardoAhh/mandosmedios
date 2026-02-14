@@ -19,8 +19,12 @@ const PAGE = {
     width: 210,
     height: 297,
     margin: 20,
-    contentWidth: 170
+    contentWidth: 170,
+    footerMargin: 25 // Espacio reservado para el footer
 }
+
+// Límite seguro de contenido (no dibujar más allá de esta Y)
+const CONTENT_LIMIT = PAGE.height - PAGE.footerMargin
 
 /**
  * Genera un reporte PDF ejecutivo para un supervisor
@@ -159,8 +163,8 @@ function drawExecutiveSummary(pdf, data, y) {
 }
 
 function drawCompetenciasChart(pdf, data, y) {
-    // Verificar espacio, crear nueva página si es necesario
-    if (y > PAGE.height - 100) {
+    // Verificar espacio para al menos el título + 1 barra
+    if (y > CONTENT_LIMIT - 30) {
         pdf.addPage()
         y = PAGE.margin
     }
@@ -185,57 +189,68 @@ function drawCompetenciasChart(pdf, data, y) {
         .sort((a, b) => b.promedio - a.promedio)
 
     const barHeight = 10
+    const barSpacing = 6
+    const rowHeight = barHeight + barSpacing
     const maxBarWidth = 90
     const labelWidth = 70
 
-    criterios.forEach((item, i) => {
-        const barY = y + (i * (barHeight + 6))
+    criterios.forEach((item) => {
+        // Verificar espacio para cada barra individualmente
+        if (y + rowHeight > CONTENT_LIMIT) {
+            pdf.addPage()
+            y = PAGE.margin
+        }
+
         const percentage = (item.promedio / 5) * 100
         const barWidth = (percentage / 100) * maxBarWidth
 
-        // Nombre del criterio con ícono
+        // Nombre del criterio
         pdf.setFontSize(10)
         pdf.setFont('helvetica', 'bold')
         pdf.setTextColor(...COLORS.dark)
         const criterioNombre = item.criterio?.nombre || 'Sin nombre'
-        pdf.text(criterioNombre.substring(0, 25), PAGE.margin, barY + 6)
+        pdf.text(criterioNombre.substring(0, 25), PAGE.margin, y + 6)
 
         // Barra de fondo
         pdf.setFillColor(...COLORS.lightGray)
-        pdf.roundedRect(PAGE.margin + labelWidth, barY, maxBarWidth, barHeight, 2, 2, 'F')
+        pdf.roundedRect(PAGE.margin + labelWidth, y, maxBarWidth, barHeight, 2, 2, 'F')
 
         // Barra de progreso
         const color = item.promedio >= 4 ? COLORS.success :
             item.promedio >= 3 ? COLORS.warning : COLORS.danger
         pdf.setFillColor(...color)
-        pdf.roundedRect(PAGE.margin + labelWidth, barY, barWidth, barHeight, 2, 2, 'F')
+        pdf.roundedRect(PAGE.margin + labelWidth, y, barWidth, barHeight, 2, 2, 'F')
 
         // Valor
         pdf.setFont('helvetica', 'bold')
         pdf.setTextColor(...COLORS.dark)
-        pdf.text(item.promedio.toFixed(1), PAGE.margin + labelWidth + maxBarWidth + 5, barY + 6)
+        pdf.text(item.promedio.toFixed(1), PAGE.margin + labelWidth + maxBarWidth + 5, y + 6)
+
+        y += rowHeight
     })
 
-    y += criterios.length * (barHeight + 6) + 10
+    y += 10
 
     return y
 }
 
 function drawInsights(pdf, data, y) {
-    // Verificar espacio
-    if (y > PAGE.height - 80) {
+    // La sección completa necesita ~65mm (título + cards de 45mm + spacing)
+    const sectionHeight = 65
+    if (y + sectionHeight > CONTENT_LIMIT) {
         pdf.addPage()
         y = PAGE.margin
     }
 
     const colWidth = PAGE.contentWidth / 2 - 5
+    const cardHeight = 45
 
     // Fortalezas
     if (data.fortalezas?.length > 0) {
         y = drawSectionTitle(pdf, 'Fortalezas', y)
 
         pdf.setFillColor(240, 253, 244) // Verde claro
-        pdf.roundedRect(PAGE.margin, y, colWidth, 45, 3, 3, 'F')
+        pdf.roundedRect(PAGE.margin, y, colWidth, cardHeight, 3, 3, 'F')
 
         let insightY = y + 8
         data.fortalezas.slice(0, 3).forEach((f, i) => {
@@ -254,7 +269,7 @@ function drawInsights(pdf, data, y) {
     // Áreas de mejora
     if (data.oportunidades?.length > 0) {
         pdf.setFillColor(255, 251, 235) // Amarillo claro
-        pdf.roundedRect(PAGE.margin + colWidth + 10, y, colWidth, 45, 3, 3, 'F')
+        pdf.roundedRect(PAGE.margin + colWidth + 10, y, colWidth, cardHeight, 3, 3, 'F')
 
         // Título
         pdf.setFontSize(10)
@@ -276,35 +291,36 @@ function drawInsights(pdf, data, y) {
         })
     }
 
-    y += 55
+    y += cardHeight + 10
 
     return y
 }
 
 function drawComments(pdf, data, y) {
-    // Verificar espacio
-    if (y > PAGE.height - 60) {
+    // Verificar espacio para título + al menos 1 comentario
+    if (y + 30 > CONTENT_LIMIT) {
         pdf.addPage()
         y = PAGE.margin
     }
 
     y = drawSectionTitle(pdf, 'Comentarios Anónimos', y)
 
-    data.comentarios.slice(0, 3).forEach((comment, i) => {
-        if (y > PAGE.height - 30) {
+    data.comentarios.slice(0, 3).forEach((comment) => {
+        pdf.setFontSize(9)
+        pdf.setFont('helvetica', 'italic')
+        const lines = pdf.splitTextToSize(`"${comment}"`, PAGE.contentWidth - 10)
+        const commentHeight = lines.length * 5 + 10
+
+        // Verificar si el comentario cabe en la página actual
+        if (y + commentHeight > CONTENT_LIMIT) {
             pdf.addPage()
             y = PAGE.margin
         }
 
         pdf.setFillColor(...COLORS.lightGray)
-        const commentHeight = Math.ceil(comment.length / 80) * 5 + 10
         pdf.roundedRect(PAGE.margin, y, PAGE.contentWidth, commentHeight, 2, 2, 'F')
 
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'italic')
         pdf.setTextColor(...COLORS.gray)
-
-        const lines = pdf.splitTextToSize(`"${comment}"`, PAGE.contentWidth - 10)
         pdf.text(lines, PAGE.margin + 5, y + 7)
 
         y += commentHeight + 5

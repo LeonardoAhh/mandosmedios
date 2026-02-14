@@ -10,7 +10,8 @@ const Button = ({
     icon,
     onClick,
     type = 'button',
-    className = ''
+    className = '',
+    ariaLabel
 }) => {
     const classes = [
         'btn',
@@ -27,11 +28,13 @@ const Button = ({
             className={classes}
             onClick={onClick}
             disabled={disabled || loading}
+            aria-label={ariaLabel}
+            aria-busy={loading || undefined}
         >
             {loading ? (
-                <span className="btn-spinner"></span>
+                <span className="btn-spinner" aria-hidden="true"></span>
             ) : icon ? (
-                <span className="btn-icon">{icon}</span>
+                <span className="btn-icon" aria-hidden="true">{icon}</span>
             ) : null}
             <span className="btn-text">{children}</span>
         </button>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { getAllUsers, getAllResponses, getAllSupervisores } from '../../config/firebase'
 import './EmployeeProgress.css'
 
@@ -13,33 +13,21 @@ const EmployeeProgress = () => {
     const [selectedDepartment, setSelectedDepartment] = useState('todos')
     const [selectedShift, setSelectedShift] = useState('todos')
 
-    useEffect(() => {
-        loadData()
-    }, [])
-
-    const loadData = async () => {
+    // ✅ OPTIMIZACIÓN 1: useCallback en loadData evita recrear la función en cada render
+    const loadData = useCallback(async () => {
         try {
             setLoading(true)
             setError(null)
 
-            // Cargar empleados, respuestas y supervisores en paralelo
             const [usersResult, responsesResult, supervisoresResult] = await Promise.all([
                 getAllUsers(),
                 getAllResponses(),
                 getAllSupervisores()
             ])
 
-            if (!usersResult.success) {
-                throw new Error(usersResult.error)
-            }
-
-            if (!responsesResult.success) {
-                throw new Error(responsesResult.error)
-            }
-
-            if (!supervisoresResult.success) {
-                throw new Error(supervisoresResult.error)
-            }
+            if (!usersResult.success) throw new Error(usersResult.error)
+            if (!responsesResult.success) throw new Error(responsesResult.error)
+            if (!supervisoresResult.success) throw new Error(supervisoresResult.error)
 
             setEmployees(usersResult.data || [])
             setResponses(responsesResult.data || [])
@@ -50,47 +38,89 @@ const EmployeeProgress = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, []) // Sin dependencias: solo se crea una vez
 
-    // Calcular progreso de evaluaciones de un empleado
-    const getEvaluationProgress = (employee) => {
-        // Contar supervisores que debe evaluar (mismo departamento y turno)
-        const totalToEvaluate = supervisores.filter(sup =>
-            sup.department === employee.departamento &&
-            sup.currentShift === employee.turnoFijo
-        ).length
+    useEffect(() => {
+        loadData()
+    }, [loadData])
 
-        // Contar cuántos ya evaluó
-        const evaluationsCompleted = responses.filter(response =>
-            response.evaluadorId === employee.id
-        ).length
+    // ✅ OPTIMIZACIÓN 2: Pre-computar índices como Maps para O(1) en lugar de O(n) por búsqueda
+    // responsesByEvaluador: { [evaluadorId]: count }
+    const responsesByEvaluador = useMemo(() => {
+        const map = {}
+        for (const response of responses) {
+            if (response.evaluadorId) {
+                map[response.evaluadorId] = (map[response.evaluadorId] || 0) + 1
+            }
+        }
+        return map
+    }, [responses])
+
+    // supervisoresByDeptShift: { [`${dept}-${shift}`]: count }
+    const supervisoresByDeptShift = useMemo(() => {
+        const map = {}
+        for (const sup of supervisores) {
+            const key = `${sup.department}-${sup.currentShift}`
+            map[key] = (map[key] || 0) + 1
+        }
+        return map
+    }, [supervisores])
+
+    // ✅ OPTIMIZACIÓN 3: useCallback para getEvaluationProgress usando los Maps precalculados
+    // Ahora es O(1) en lugar de O(n) supervisores + O(n) responses por cada empleado
+    const getEvaluationProgress = useCallback((employee) => {
+        const key = `${employee.departamento}-${employee.turnoFijo}`
+        const totalToEvaluate = supervisoresByDeptShift[key] || 0
+        const evaluationsCompleted = responsesByEvaluador[employee.id] || 0
 
         return {
             completed: evaluationsCompleted,
             total: totalToEvaluate,
             percentage: totalToEvaluate > 0 ? (evaluationsCompleted / totalToEvaluate) * 100 : 0,
-            isComplete: totalToEvaluate > 0 && evaluationsCompleted === totalToEvaluate
+            isComplete: totalToEvaluate > 0 && evaluationsCompleted >= totalToEvaluate
         }
-    }
+    }, [supervisoresByDeptShift, responsesByEvaluador])
 
-    // Obtener lista única de departamentos
-    const departments = ['todos', ...new Set(employees.map(emp => emp.departamento).filter(Boolean))]
+    // ✅ OPTIMIZACIÓN 4: Listas de filtros memoizadas, solo se recalculan si employees cambia
+    const departments = useMemo(() => (
+        ['todos', ...new Set(employees.map(emp => emp.departamento).filter(Boolean))]
+    ), [employees])
 
-    // Obtener lista única de turnos
-    const shifts = ['todos', ...Array.from(new Set(employees.map(emp => emp.turnoFijo).filter(Boolean))).sort((a, b) => a - b)]
+    const shifts = useMemo(() => (
+        ['todos', ...Array.from(new Set(employees.map(emp => emp.turnoFijo).filter(Boolean))).sort((a, b) => a - b)]
+    ), [employees])
 
-    // Filtrar empleados
-    const filteredEmployees = employees.filter(emp => {
-        const matchDepartment = selectedDepartment === 'todos' || emp.departamento === selectedDepartment
-        const matchShift = selectedShift === 'todos' || emp.turnoFijo === parseInt(selectedShift)
-        return matchDepartment && matchShift
-    })
+    // ✅ OPTIMIZACIÓN 5: filteredEmployees memoizado, solo recalcula si cambian filtros o empleados
+    const filteredEmployees = useMemo(() => (
+        employees.filter(emp => {
+            const matchDepartment = selectedDepartment === 'todos' || emp.departamento === selectedDepartment
+            const matchShift = selectedShift === 'todos' || emp.turnoFijo === parseInt(selectedShift)
+            return matchDepartment && matchShift
+        })
+    ), [employees, selectedDepartment, selectedShift])
 
-    // Calcular estadísticas
-    const totalFiltered = filteredEmployees.length
-    const completedCount = filteredEmployees.filter(emp => getEvaluationProgress(emp).isComplete).length
-    const pendingCount = totalFiltered - completedCount
-    const completionPercentage = totalFiltered > 0 ? ((completedCount / totalFiltered) * 100).toFixed(1) : 0
+    // ✅ OPTIMIZACIÓN 6: Progreso pre-calculado para TODOS los empleados filtrados de una sola pasada
+    // Evita llamar getEvaluationProgress dos veces por empleado (stats + render de fila)
+    const progressMap = useMemo(() => {
+        const map = {}
+        for (const emp of filteredEmployees) {
+            map[emp.id] = getEvaluationProgress(emp)
+        }
+        return map
+    }, [filteredEmployees, getEvaluationProgress])
+
+    // ✅ OPTIMIZACIÓN 7: Estadísticas derivadas del progressMap, sin recorrer empleados de nuevo
+    const stats = useMemo(() => {
+        const total = filteredEmployees.length
+        const completed = filteredEmployees.filter(emp => progressMap[emp.id]?.isComplete).length
+        const pending = total - completed
+        const percentage = total > 0 ? ((completed / total) * 100).toFixed(1) : 0
+        return { total, completed, pending, percentage }
+    }, [filteredEmployees, progressMap])
+
+    // ✅ OPTIMIZACIÓN 8: Handlers memoizados para evitar re-renders innecesarios en los selects
+    const handleDepartmentChange = useCallback((e) => setSelectedDepartment(e.target.value), [])
+    const handleShiftChange = useCallback((e) => setSelectedShift(e.target.value), [])
 
     if (loading) {
         return (
@@ -123,33 +153,33 @@ const EmployeeProgress = () => {
                 <p className="subtitle">Monitoreo de completado por empleados</p>
             </div>
 
-            {/* Estadísticas */}
+            {/* Estadísticas — ahora usa stats memoizado */}
             <div className="stats-grid">
                 <div className="stat-card total">
                     <div className="stat-icon">👥</div>
                     <div className="stat-content">
-                        <div className="stat-value">{totalFiltered}</div>
+                        <div className="stat-value">{stats.total}</div>
                         <div className="stat-label">Total Empleados</div>
                     </div>
                 </div>
                 <div className="stat-card completed">
                     <div className="stat-icon">✅</div>
                     <div className="stat-content">
-                        <div className="stat-value">{completedCount}</div>
+                        <div className="stat-value">{stats.completed}</div>
                         <div className="stat-label">Completados</div>
                     </div>
                 </div>
                 <div className="stat-card pending">
                     <div className="stat-icon">⏳</div>
                     <div className="stat-content">
-                        <div className="stat-value">{pendingCount}</div>
+                        <div className="stat-value">{stats.pending}</div>
                         <div className="stat-label">Pendientes</div>
                     </div>
                 </div>
                 <div className="stat-card percentage">
                     <div className="stat-icon">📈</div>
                     <div className="stat-content">
-                        <div className="stat-value">{completionPercentage}%</div>
+                        <div className="stat-value">{stats.percentage}%</div>
                         <div className="stat-label">Progreso</div>
                     </div>
                 </div>
@@ -162,7 +192,7 @@ const EmployeeProgress = () => {
                     <select
                         id="department-filter"
                         value={selectedDepartment}
-                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        onChange={handleDepartmentChange}
                         className="filter-select"
                     >
                         {departments.map(dept => (
@@ -178,7 +208,7 @@ const EmployeeProgress = () => {
                     <select
                         id="shift-filter"
                         value={selectedShift}
-                        onChange={(e) => setSelectedShift(e.target.value)}
+                        onChange={handleShiftChange}
                         className="filter-select"
                     >
                         <option value="todos">Todos los turnos</option>
@@ -197,7 +227,6 @@ const EmployeeProgress = () => {
 
             {/* Tabla de empleados */}
             <div className="table-container">
-                {/* ✅ AGREGADO: Wrapper para scroll horizontal */}
                 <div className="table-wrapper">
                     <table className="employees-table">
                         <thead>
@@ -219,13 +248,13 @@ const EmployeeProgress = () => {
                                 </tr>
                             ) : (
                                 filteredEmployees.map(employee => {
-                                    const progress = getEvaluationProgress(employee)
+                                    // ✅ OPTIMIZACIÓN 9: Leer del progressMap en lugar de recalcular
+                                    const progress = progressMap[employee.id]
                                     const statusClass = progress.isComplete ? 'completed-row' :
                                         progress.completed > 0 ? 'progress-row' : 'pending-row'
                                     return (
                                         <tr key={employee.id} className={statusClass}>
                                             <td>{employee.employeeNumber || '-'}</td>
-                                            {/* ✅ CORREGIDO: Agregada clase name-cell */}
                                             <td className="name-cell">{employee.nombre || '-'}</td>
                                             <td className="email-cell">{employee.email || '-'}</td>
                                             <td>{employee.departamento || '-'}</td>

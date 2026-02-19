@@ -1,21 +1,28 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Layout from './components/layout/Layout'
 import Loader from './components/ui/Loader'
 
-import LoginPage from './pages/LoginPage'
-import OperativoDashboard from './pages/operativo/Dashboard'
-import EncuestaPage from './pages/operativo/EncuestaPage'
-import RHDashboard from './pages/rh/Dashboard'
-import GestionEncuestas from './pages/rh/GestionEncuestas'
-import GestionUsuarios from './pages/rh/GestionUsuarios'
-import GestionCompetencias from './pages/rh/GestionCompetencias'
-import Reportes from './pages/rh/Reportes'
-import GestionSupervisores from './pages/rh/GestionSupervisores'
-import EmployeeProgress from './pages/rh/EmployeeProgress'
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const OperativoDashboard = lazy(() => import('./pages/operativo/Dashboard'))
+const EncuestaPage = lazy(() => import('./pages/operativo/EncuestaPage'))
+const RHDashboard = lazy(() => import('./pages/rh/Dashboard'))
+const GestionEncuestas = lazy(() => import('./pages/rh/GestionEncuestas'))
+const GestionUsuarios = lazy(() => import('./pages/rh/GestionUsuarios'))
+const GestionCompetencias = lazy(() => import('./pages/rh/GestionCompetencias'))
+const Reportes = lazy(() => import('./pages/rh/Reportes'))
+const ReporteFinal = lazy(() => import('./pages/rh/ReporteFinal'))
+const GestionSupervisores = lazy(() => import('./pages/rh/GestionSupervisores'))
+const EmployeeProgress = lazy(() => import('./pages/rh/EmployeeProgress'))
 
-// Componente para redirigir según rol
+const PageLoader = () => (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <Loader fullScreen={false} message="Cargando..." />
+    </div>
+)
+
 const RoleRedirect = () => {
     const { profile, loading } = useAuth()
 
@@ -38,140 +45,81 @@ function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
-                <Routes>
-                    {/* Login */}
-                    <Route path="/login" element={<LoginPage />} />
+                <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/" element={<RoleRedirect />} />
 
-                    {/* Redirect root */}
-                    <Route path="/" element={<RoleRedirect />} />
-
-                    {/* Portal Operativo */}
-                    <Route
-                        path="/encuestas"
-                        element={
+                        <Route path="/encuestas" element={
                             <ProtectedRoute requiredRole="operativo">
-                                <Layout>
-                                    <OperativoDashboard />
-                                </Layout>
+                                <Layout><OperativoDashboard /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/encuestas/:surveyId"
-                        element={
+                        } />
+                        <Route path="/encuestas/:surveyId" element={
                             <ProtectedRoute requiredRole="operativo">
-                                <Layout>
-                                    <EncuestaPage />
-                                </Layout>
+                                <Layout><EncuestaPage /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/encuestas/evaluar/:evaluadoId"
-                        element={
+                        } />
+                        <Route path="/encuestas/evaluar/:evaluadoId" element={
                             <ProtectedRoute requiredRole="operativo">
-                                <Layout>
-                                    <EncuestaPage />
-                                </Layout>
+                                <Layout><EncuestaPage /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
 
-                    {/* Portal RH */}
-                    <Route
-                        path="/rh"
-                        element={
+                        <Route path="/rh" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <RHDashboard />
-                                </Layout>
+                                <Layout><RHDashboard /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/encuestas"
-                        element={
+                        } />
+                        <Route path="/rh/encuestas" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <GestionEncuestas />
-                                </Layout>
+                                <Layout><GestionEncuestas /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/encuestas/nueva"
-                        element={
+                        } />
+                        <Route path="/rh/encuestas/nueva" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <GestionEncuestas />
-                                </Layout>
+                                <Layout><GestionEncuestas /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/usuarios"
-                        element={
+                        } />
+                        <Route path="/rh/usuarios" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <GestionUsuarios />
-                                </Layout>
+                                <Layout><GestionUsuarios /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/supervisores"
-                        element={
+                        } />
+                        <Route path="/rh/usuarios/nuevo" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <GestionSupervisores />
-                                </Layout>
+                                <Layout><GestionUsuarios /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/usuarios/nuevo"
-                        element={
+                        } />
+                        <Route path="/rh/supervisores" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <GestionUsuarios />
-                                </Layout>
+                                <Layout><GestionSupervisores /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/reportes"
-                        element={
+                        } />
+                        <Route path="/rh/reportes" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <Reportes />
-                                </Layout>
+                                <Layout><Reportes /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/competencias"
-                        element={
+                        } />
+                        <Route path="/rh/reportes/final" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <GestionCompetencias />
-                                </Layout>
+                                <Layout><ReporteFinal /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/rh/progreso"
-                        element={
+                        } />
+                        <Route path="/rh/competencias" element={
                             <ProtectedRoute requiredRole="rh">
-                                <Layout>
-                                    <EmployeeProgress />
-                                </Layout>
+                                <Layout><GestionCompetencias /></Layout>
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
+                        <Route path="/rh/progreso" element={
+                            <ProtectedRoute requiredRole="rh">
+                                <Layout><EmployeeProgress /></Layout>
+                            </ProtectedRoute>
+                        } />
 
-                    {/* 404 - Redirigir a inicio */}
-                    <Route path="*" element={<RoleRedirect />} />
-                </Routes>
+                        <Route path="*" element={<RoleRedirect />} />
+                    </Routes>
+                </Suspense>
             </BrowserRouter>
         </AuthProvider>
     )

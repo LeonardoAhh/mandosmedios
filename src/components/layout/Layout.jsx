@@ -1,109 +1,57 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import './Layout.css'
 
-// Nav items RH (estáticos, fuera del componente para evitar recreación)
+// Nav items RH
 const RH_NAV_ITEMS = [
-    {
-        path: '/rh',
-        label: 'Dashboard',
-        end: true,
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="2" />
-                <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="2" />
-                <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="2" />
-                <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="2" />
-            </svg>
-        )
-    },
-    {
-        path: '/rh/encuestas',
-        label: 'Encuestas',
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M7 3H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2M7 3a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M7 3a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        )
-    },
-    {
-        path: '/rh/usuarios',
-        label: 'Usuarios',
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M14 17v-2a4 4 0 0 0-4-4H4a4 4 0 0 0-4 4v2M10 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 17v-2a4 4 0 0 0-3-3.87M14 1.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        )
-    },
-    {
-        path: '/rh/supervisores',
-        label: 'Evaluados',
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M16 17v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M12 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM18 17v-1a3 3 0 0 0-2-2.83M14 3.17a3 3 0 0 1 0 5.66" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        )
-    },
-    {
-        path: '/rh/competencias',
-        label: 'Preguntas',
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
-                <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-        )
-    },
-    {
-        path: '/rh/progreso',
-        label: 'Progreso',
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M2 10h4l3-6 4 12 3-6h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        )
-    },
-    {
-        path: '/rh/reportes',
-        label: 'Reportes',
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M18 18H2V2M6 14V10M10 14V6M14 14v-4M18 14v-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        )
-    }
+    { path: '/rh', label: 'Inicio', end: true, icon: 'M3 9l7-7 7 7M5 8v8a1 1 0 0 0 1 1h3v-5h2v5h3a1 1 0 0 0 1-1V8' },
+    { path: '/rh/encuestas', label: 'Encuestas', icon: 'M8 4H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2M8 9h4M8 12h2' },
+    { path: '/rh/usuarios', label: 'Usuarios', icon: 'M9 7a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 17v-1a3 3 0 0 0-3-3h-1M5 17v-1a3 3 0 0 1 3-3h1' },
+    { path: '/rh/supervisores', label: 'Evaluados', icon: 'M14 16v-1a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v1M10 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z' },
+    { path: '/rh/competencias', label: 'Competencias', icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 8v4l2 2' },
+    { path: '/rh/progreso', label: 'Progreso', icon: 'M2 14l4-8 4 4 6-8M18 14H2' },
+    { path: '/rh/reportes', label: 'Reportes', icon: 'M3 3h14v14H3zM7 7h6M7 11h4M7 15h5' }
 ]
 
-// Nav items operativo (estáticos)
+// Nav items operativo
 const OPERATIVO_NAV_ITEMS = [
-    {
-        path: '/encuestas',
-        label: 'Mis Encuestas',
-        end: true,
-        icon: (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M7 3H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2M7 3a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M7 3a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        )
-    }
+    { path: '/encuestas', label: 'Evaluaciones', end: true, icon: 'M9 11l3 3L20 6M4 16V6a2 2 0 0 1 2-2h12v12a2 2 0 0 1-2 2H6' }
 ]
+
+const NavIcon = ({ d }) => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d={d} />
+    </svg>
+)
 
 const Layout = ({ children }) => {
     const { profile, logout } = useAuth()
     const navigate = useNavigate()
     const isRH = profile?.rol === 'rh'
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
 
     const navItems = isRH ? RH_NAV_ITEMS : OPERATIVO_NAV_ITEMS
 
-    const toggleMobileMenu = useCallback(() => {
-        setIsMobileMenuOpen(prev => !prev)
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 769)
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
     }, [])
 
-    const closeMobileMenu = useCallback(() => {
-        setIsMobileMenuOpen(false)
-    }, [])
+    useEffect(() => {
+        if (sidebarOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => { document.body.style.overflow = '' }
+    }, [sidebarOpen])
+
+    const toggleSidebar = useCallback(() => setSidebarOpen(p => !p), [])
+    const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
     const handleLogout = useCallback(async () => {
         await logout()
@@ -112,134 +60,73 @@ const Layout = ({ children }) => {
 
     return (
         <div className="layout">
-            {/* Hamburger Button para Tablet */}
-            <button
-                className="mobile-menu-toggle"
-                onClick={toggleMobileMenu}
-                aria-label={isMobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
-                aria-expanded={isMobileMenuOpen}
-                aria-controls="sidebar-nav"
-            >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+            {/* Hamburger */}
+            <button className={`hamburger ${sidebarOpen ? 'open' : ''}`} onClick={toggleSidebar} aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
 
-            {/* Overlay para tablet */}
-            {isMobileMenuOpen && (
-                <div
-                    className="sidebar-overlay"
-                    onClick={closeMobileMenu}
-                    aria-hidden="true"
-                />
-            )}
+            {/* Overlay */}
+            <div className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`} onClick={closeSidebar} />
 
-            {/* Sidebar Desktop */}
-            <aside
-                id="sidebar-nav"
-                className={`sidebar ${isMobileMenuOpen ? 'sidebar-open' : ''}`}
-                aria-label="Navegación principal"
-            >
+            {/* Sidebar */}
+            <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <div className="logo">
-                        <div className="logo-icon" aria-hidden="true">
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                                <rect x="4" y="4" width="24" height="24" rx="4" fill="url(#gradient)" />
-                                <path d="M16 10v12M10 16h12" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                        <div className="logo-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect x="2" y="2" width="20" height="20" rx="4" fill="url(#logoGrad)"/>
+                                <path d="M12 7v10M7 12h10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                                 <defs>
-                                    <linearGradient id="gradient" x1="4" y1="4" x2="28" y2="28">
-                                        <stop offset="0%" stopColor="var(--primary, #3b82f6)" />
-                                        <stop offset="100%" stopColor="var(--primary-dark, #2563eb)" />
+                                    <linearGradient id="logoGrad" x1="2" y1="2" x2="22" y2="22">
+                                        <stop offset="0%" stopColor="#3b82f6"/>
+                                        <stop offset="100%" stopColor="#8b5cf6"/>
                                     </linearGradient>
                                 </defs>
                             </svg>
                         </div>
-                        <div className="logo-text">
-                            <span className="logo-title">Evaluación</span>
-                            <span className="logo-subtitle">ViñoPlastic</span>
-                        </div>
+                        <span className="logo-text">Evaluación</span>
                     </div>
                 </div>
 
-                <nav className="sidebar-nav" aria-label="Menú principal">
-                    {navItems.map((item) => (
+                <nav className="sidebar-nav">
+                    {navItems.map((item, i) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             end={item.end || false}
-                            className={({ isActive }) =>
-                                `nav-item ${isActive ? 'nav-item-active' : ''}`
-                            }
-                            aria-current={({ isActive }) => isActive ? 'page' : undefined}
-                            onClick={closeMobileMenu}
+                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                            onClick={closeSidebar}
+                            style={{ animationDelay: `${i * 0.05}s` }}
                         >
-                            <span className="nav-icon">{item.icon}</span>
+                            <span className="nav-icon"><NavIcon d={item.icon} /></span>
                             <span className="nav-label">{item.label}</span>
                         </NavLink>
                     ))}
                 </nav>
 
-                <div className="sidebar-footer" role="contentinfo">
+                <div className="sidebar-footer">
                     <div className="user-card">
-                        <div className="user-avatar" aria-hidden="true">
-                            {profile?.nombre?.charAt(0)?.toUpperCase() || 'U'}
-                        </div>
-                        <div className="user-details">
+                        <div className="user-avatar">{profile?.nombre?.charAt(0)?.toUpperCase() || 'U'}</div>
+                        <div className="user-info">
                             <span className="user-name">{profile?.nombre || 'Usuario'}</span>
-                            <span className="user-role">
-                                {isRH ? 'Recursos Humanos' : 'Personal'}
-                            </span>
+                            <span className="user-role">{isRH ? 'Recursos Humanos' : 'Personal'}</span>
                         </div>
                     </div>
-                    <button
-                        className="logout-btn"
-                        onClick={handleLogout}
-                        aria-label="Cerrar sesión"
-                    >
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path d="M7 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M13 13l4-4-4-4M17 9H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <button className="logout-btn" onClick={handleLogout}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
                         </svg>
-                        <span>Cerrar sesión</span>
+                        <span>Salir</span>
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
+            {/* Main */}
             <main className="main-content">
-                <div className="content-wrapper">
-                    {children}
-                </div>
+                <div className="content-wrapper">{children}</div>
             </main>
-
-            {/* Mobile Bottom Navigation */}
-            <nav className="mobile-nav" aria-label="Navegación móvil">
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        end={item.end || false}
-                        className={({ isActive }) =>
-                            `mobile-nav-item ${isActive ? 'mobile-nav-item-active' : ''}`
-                        }
-                        aria-current={({ isActive }) => isActive ? 'page' : undefined}
-                    >
-                        <span className="mobile-nav-icon">{item.icon}</span>
-                        <span className="mobile-nav-label">{item.label}</span>
-                    </NavLink>
-                ))}
-                <button
-                    className="mobile-nav-item"
-                    onClick={handleLogout}
-                    aria-label="Cerrar sesión"
-                >
-                    <span className="mobile-nav-icon">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path d="M7 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M13 13l4-4-4-4M17 9H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </span>
-                    <span className="mobile-nav-label">Salir</span>
-                </button>
-            </nav>
         </div>
     )
 }

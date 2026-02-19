@@ -24,7 +24,6 @@ const Dashboard = () => {
         const listeners = []
 
         try {
-            // Listener para usuarios
             listeners.push(
                 onSnapshot(collection(db, 'users'), (snapshot) => {
                     setStats(prev => ({ ...prev, totalUsuarios: snapshot.size }))
@@ -34,17 +33,14 @@ const Dashboard = () => {
                 })
             )
 
-            // Listener para supervisores
             listeners.push(
                 onSnapshot(collection(db, 'supervisores'), (snapshot) => {
                     setStats(prev => ({ ...prev, totalSupervisores: snapshot.size }))
                 }, (err) => {
                     console.error('Error en listener de supervisores:', err)
-                    setError('Error al cargar datos de supervisores')
                 })
             )
 
-            // Listener para encuestas
             listeners.push(
                 onSnapshot(collection(db, 'surveys'), (snapshot) => {
                     const surveys = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -55,11 +51,9 @@ const Dashboard = () => {
                     }))
                 }, (err) => {
                     console.error('Error en listener de encuestas:', err)
-                    setError('Error al cargar datos de encuestas')
                 })
             )
 
-            // Listener para respuestas
             listeners.push(
                 onSnapshot(collection(db, 'responses'), (snapshot) => {
                     const responses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -125,311 +119,201 @@ const Dashboard = () => {
         }
     }, [])
 
-    // Limpiar error después de 5s
     useEffect(() => {
         if (!error) return
         const timer = setTimeout(() => setError(null), 5000)
         return () => clearTimeout(timer)
     }, [error])
 
-    // Handlers memoizados
     const handleNavigate = useCallback((path) => {
         navigate(path)
     }, [navigate])
 
-    // KPI items (memoizados)
-    const kpiItems = useMemo(() => [
-        {
-            id: 'encuestas',
-            path: '/rh/encuestas',
-            value: stats.encuestasActivas,
-            label: 'Encuestas Activas',
-            badge: `${stats.encuestasActivas}/${stats.totalEncuestas}`,
-            colorClass: 'dash-kpi-icon-blue',
-            icon: (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        },
-        {
-            id: 'supervisores',
-            path: '/rh/supervisores',
-            value: stats.totalSupervisores,
-            label: 'Supervisores',
-            colorClass: 'dash-kpi-icon-teal',
-            icon: (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        },
-        {
-            id: 'usuarios',
-            path: '/rh/usuarios',
-            value: stats.totalUsuarios,
-            label: 'Usuarios',
-            colorClass: 'dash-kpi-icon-purple',
-            icon: (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        },
-        {
-            id: 'respuestas',
-            value: stats.totalRespuestas,
-            label: 'Respuestas Recibidas',
-            colorClass: 'dash-kpi-icon-orange',
-            icon: (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        }
-    ], [stats])
-
-    // Action items (estáticos)
-    const actionItems = useMemo(() => [
-        {
-            id: 'nueva-encuesta',
-            path: '/rh/encuestas/nueva',
-            label: 'Nueva Encuesta',
-            description: 'Crear una nueva evaluación',
-            colorClass: 'dash-action-icon-blue',
-            icon: (
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                    <path d="M16 10v12M10 16h12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-            )
-        },
-        {
-            id: 'agregar-usuario',
-            path: '/rh/usuarios',
-            label: 'Agregar Usuario',
-            description: 'Registrar nuevo operativo',
-            colorClass: 'dash-action-icon-green',
-            icon: (
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                    <path d="M26 28v-3a5 5 0 0 0-5-5H11a5 5 0 0 0-5 5v3M16 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        },
-        {
-            id: 'ver-reportes',
-            path: '/rh/reportes',
-            label: 'Ver Reportes',
-            description: 'Análisis y estadísticas',
-            colorClass: 'dash-action-icon-purple',
-            icon: (
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                    <path d="M26 26H6V6M10 22V16M14 22V12M18 22v-8M22 22v-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        },
-        {
-            id: 'supervisores',
-            path: '/rh/supervisores',
-            label: 'Supervisores',
-            description: 'Gestionar turnos',
-            colorClass: 'dash-action-icon-teal',
-            icon: (
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                    <path d="M22 28v-3a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v3M13 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM28 28v-3a5 5 0 0 0-4-4.9M19 5.1a5 5 0 0 1 0 9.8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            )
-        }
-    ], [])
+    const getNivelColor = (promedio) => {
+        if (promedio >= 4.5) return '#16a34a'
+        if (promedio >= 4.0) return '#3b82f6'
+        if (promedio >= 3.0) return '#d97706'
+        return '#dc2626'
+    }
 
     if (loading) {
         return <Loader fullScreen message="Cargando dashboard..." />
     }
 
     return (
-        <div className="rh-dashboard">
+        <div className="dash-page">
             {/* Header */}
             <header className="dash-header">
-                <div className="dash-header-content">
-                    <h1 className="dash-title">Dashboard</h1>
-                    <p className="dash-subtitle">
-                        Panel de control del sistema de evaluación de liderazgo
-                    </p>
+                <div className="dash-header-info">
+                    <h1 className="dash-title">Hola</h1>
+                    <p className="dash-subtitle">Resumen de evaluaciones de liderazgo</p>
                 </div>
-                <div className="dash-live-indicator" aria-live="polite" aria-label="Estado de conexión: en vivo">
-                    <span className="dash-live-dot" aria-hidden="true" />
-                    En vivo
+                <div className="dash-header-status">
+                    <span className="dash-status-dot"></span>
+                    <span>En vivo</span>
                 </div>
             </header>
 
-            {/* Error banner */}
+            {/* Error */}
             {error && (
-                <div className="dash-error-banner" role="alert">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                        <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M8 5v4M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                    <span>{error}</span>
-                    <button onClick={() => setError(null)} className="dash-error-close" aria-label="Cerrar aviso">×</button>
-                </div>
+                <div className="dash-error">{error}</div>
             )}
 
-            {/* KPIs principales */}
-            <section className="dash-kpi-section" aria-label="Indicadores clave">
-                {kpiItems.map((kpi) => {
-                    const isClickable = !!kpi.path
-
-                    return isClickable ? (
-                        <button
-                            key={kpi.id}
-                            className="dash-kpi-card dash-kpi-clickable"
-                            onClick={() => handleNavigate(kpi.path)}
-                            aria-label={`${kpi.label}: ${kpi.value}. Ir a ${kpi.label}`}
-                        >
-                            <div className="dash-kpi-header">
-                                <div className={`dash-kpi-icon ${kpi.colorClass}`}>
-                                    {kpi.icon}
-                                </div>
-                                {kpi.badge && (
-                                    <div className="dash-kpi-badge" aria-hidden="true">{kpi.badge}</div>
-                                )}
-                            </div>
-                            <div className="dash-kpi-value">{kpi.value}</div>
-                            <div className="dash-kpi-label">{kpi.label}</div>
-                        </button>
-                    ) : (
-                        <div key={kpi.id} className="dash-kpi-card" aria-label={`${kpi.label}: ${kpi.value}`}>
-                            <div className="dash-kpi-header">
-                                <div className={`dash-kpi-icon ${kpi.colorClass}`}>
-                                    {kpi.icon}
-                                </div>
-                            </div>
-                            <div className="dash-kpi-value">{kpi.value}</div>
-                            <div className="dash-kpi-label">{kpi.label}</div>
-                        </div>
-                    )
-                })}
-
-                {/* KPI Promedio especial */}
-                <div className="dash-kpi-card dash-kpi-card-promedio" aria-label={`Promedio General: ${stats.promedioGeneral.toFixed(1)}`}>
-                    <div className="dash-promedio-visual">
-                        <Semaforo valor={stats.promedioGeneral} size="lg" showLabel={false} />
+            {/* Stats Grid */}
+            <div className="dash-stats-grid">
+                <div className="dash-stat-card" onClick={() => handleNavigate('/rh/encuestas')}>
+                    <div className="dash-stat-icon dash-stat-blue">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <path d="M8 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            <path d="M8 4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="1.5"/>
+                        </svg>
                     </div>
-                    <div className="dash-kpi-value dash-promedio-value">
+                    <div className="dash-stat-content">
+                        <span className="dash-stat-value">{stats.encuestasActivas}</span>
+                        <span className="dash-stat-label">Encuestas activas</span>
+                    </div>
+                </div>
+
+                <div className="dash-stat-card" onClick={() => handleNavigate('/rh/supervisores')}>
+                    <div className="dash-stat-icon dash-stat-teal">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <path d="M16 18v-2a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                        </svg>
+                    </div>
+                    <div className="dash-stat-content">
+                        <span className="dash-stat-value">{stats.totalSupervisores}</span>
+                        <span className="dash-stat-label">Supervisores</span>
+                    </div>
+                </div>
+
+                <div className="dash-stat-card" onClick={() => handleNavigate('/rh/usuarios')}>
+                    <div className="dash-stat-icon dash-stat-purple">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <path d="M18 18v-2a3 3 0 0 0-3-3H5a3 3 0 0 0-3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                        </svg>
+                    </div>
+                    <div className="dash-stat-content">
+                        <span className="dash-stat-value">{stats.totalUsuarios}</span>
+                        <span className="dash-stat-label">Usuarios</span>
+                    </div>
+                </div>
+
+                <div className="dash-stat-card dash-stat-highlight">
+                    <div className="dash-stat-icon dash-stat-orange">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                            <path d="M8 10l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M20 10v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12" stroke="currentColor" strokeWidth="1.5"/>
+                        </svg>
+                    </div>
+                    <div className="dash-stat-content">
+                        <span className="dash-stat-value">{stats.totalRespuestas}</span>
+                        <span className="dash-stat-label">Evaluaciones</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Promedio General */}
+            <div className="dash-promedio-card">
+                <div className="dash-promedio-visual">
+                    <Semaforo valor={stats.promedioGeneral} size="lg" showLabel={false} />
+                </div>
+                <div className="dash-promedio-info">
+                    <span className="dash-promedio-value" style={{ color: getNivelColor(stats.promedioGeneral) }}>
                         {stats.promedioGeneral.toFixed(1)}
-                    </div>
-                    <div className="dash-kpi-label">Promedio General</div>
-                    <div className="dash-promedio-scale" aria-hidden="true">
-                        <span>1</span>
-                        <span>2</span>
-                        <span>3</span>
-                        <span>4</span>
-                        <span>5</span>
-                    </div>
+                    </span>
+                    <span className="dash-promedio-label">Promedio General</span>
                 </div>
-            </section>
+            </div>
 
-            {/* Acciones Rápidas */}
-            <section className="dash-section" aria-label="Acciones rápidas">
-                <h2 className="dash-section-title">Acciones Rápidas</h2>
-                <div className="dash-actions-grid">
-                    {actionItems.map((action) => (
-                        <button
-                            key={action.id}
-                            className="dash-action-card"
-                            onClick={() => handleNavigate(action.path)}
-                            aria-label={`${action.label}: ${action.description}`}
-                        >
-                            <div className={`dash-action-icon ${action.colorClass}`}>
-                                {action.icon}
-                            </div>
-                            <span className="dash-action-label">{action.label}</span>
-                            <span className="dash-action-description">{action.description}</span>
-                        </button>
-                    ))}
+            {/* Quick Actions */}
+            <div className="dash-section">
+                <h2 className="dash-section-title">Acciones</h2>
+                <div className="dash-actions">
+                    <button className="dash-action" onClick={() => handleNavigate('/rh/encuestas/nueva')}>
+                        <div className="dash-action-icon dash-action-blue">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 5v10M5 10h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                        </div>
+                        <span>Nueva Encuesta</span>
+                    </button>
+                    <button className="dash-action" onClick={() => handleNavigate('/rh/usuarios')}>
+                        <div className="dash-action-icon dash-action-green">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M15 16v-2a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                <circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M18 14v3M15 17h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                        </div>
+                        <span>Agregar Usuario</span>
+                    </button>
+                    <button className="dash-action" onClick={() => handleNavigate('/rh/reportes')}>
+                        <div className="dash-action-icon dash-action-purple">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <path d="M18 18H2V2M5 14V10M9 14V6M13 14v-4M17 14v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                        </div>
+                        <span>Reportes</span>
+                    </button>
+                    <button className="dash-action" onClick={() => handleNavigate('/rh/reportes/final')}>
+                        <div className="dash-action-icon dash-action-orange">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M7 7h6M7 10h4M7 13h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                        </div>
+                        <span>Resumen</span>
+                    </button>
                 </div>
-            </section>
+            </div>
 
-            {/* Alertas de Liderazgo */}
+            {/* Alertas */}
             {alertas.length > 0 && (
-                <section className="dash-section" aria-label="Alertas de liderazgo">
+                <div className="dash-section">
                     <div className="dash-section-header">
-                        <h2 className="dash-section-title dash-title-warning">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                            Alertas de Liderazgo
-                        </h2>
-                        <span className="dash-alert-count" aria-label={`${alertas.length} alertas`}>
-                            {alertas.length}
-                        </span>
+                        <h2 className="dash-section-title">Alertas</h2>
+                        <span className="dash-alert-badge">{alertas.length}</span>
                     </div>
-
-                    <div className="dash-alert-container">
-                        <p className="dash-alert-intro">
-                            Los siguientes supervisores tienen evaluaciones por debajo del umbral aceptable (promedio &lt; 3.0)
-                        </p>
-                        <div className="dash-alert-list" role="list">
-                            {alertas.map((alerta, index) => (
-                                <div key={alerta.id} className="dash-alert-item" role="listitem">
-                                    <div className="dash-alert-indicator" aria-hidden="true">
-                                        <span className="dash-alert-number">{index + 1}</span>
-                                    </div>
-                                    <div className="dash-alert-info">
-                                        <div className="dash-alert-name">{alerta.nombre}</div>
-                                        <div className="dash-alert-meta">
-                                            {alerta.nivel}
-                                        </div>
-                                    </div>
-                                    <div className="dash-alert-score">
-                                        <Semaforo valor={alerta.promedio} size="sm" showLabel={false} />
-                                        <span className="dash-alert-score-value">
-                                            {alerta.promedio.toFixed(1)}
-                                        </span>
-                                    </div>
+                    <div className="dash-alerts">
+                        {alertas.map((alerta, index) => (
+                            <div key={alerta.id} className="dash-alert">
+                                <div className="dash-alert-num">{index + 1}</div>
+                                <div className="dash-alert-info">
+                                    <span className="dash-alert-name">{alerta.nombre}</span>
+                                    <span className="dash-alert-dept">{alerta.nivel}</span>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="dash-alert-score" style={{ color: getNivelColor(alerta.promedio) }}>
+                                    {alerta.promedio.toFixed(1)}
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                </section>
+                </div>
             )}
 
-            {/* Sin alertas */}
+            {/* Success State */}
             {alertas.length === 0 && stats.totalRespuestas > 0 && (
-                <section className="dash-section">
-                    <div className="dash-success-container" role="status">
-                        <div className="dash-success-icon" aria-hidden="true">
-                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                                <circle cx="32" cy="32" r="28" fill="#d1fae5" />
-                                <path d="M20 32l8 8 16-16" stroke="#065f46" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </div>
-                        <h3 className="dash-success-title">Todo en Orden</h3>
-                        <p className="dash-success-text">
-                            No hay alertas de liderazgo. Todas las evaluaciones están dentro del rango aceptable.
-                        </p>
-                    </div>
-                </section>
+                <div className="dash-success">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="20" fill="#dcfce7"/>
+                        <path d="M16 24l6 6 12-12" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <p>Todo en orden</p>
+                </div>
             )}
 
-            {/* Sin datos */}
+            {/* Empty State */}
             {stats.totalRespuestas === 0 && (
-                <section className="dash-section">
-                    <div className="dash-empty-container" role="status">
-                        <div className="dash-empty-icon" aria-hidden="true">
-                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                                <rect x="16" y="12" width="32" height="40" rx="2" stroke="currentColor" strokeWidth="2" />
-                                <line x1="24" y1="24" x2="40" y2="24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="24" y1="32" x2="40" y2="32" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="24" y1="40" x2="32" y2="40" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                        </div>
-                        <h3 className="dash-empty-title">Sin Datos de Evaluación</h3>
-                        <p className="dash-empty-text">
-                            Aún no hay respuestas registradas. Los operativos pueden evaluar supervisores desde su dashboard.
-                        </p>
-                    </div>
-                </section>
+                <div className="dash-empty">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <rect x="12" y="10" width="24" height="28" rx="2" stroke="#d4d4d8" strokeWidth="2"/>
+                        <path d="M18 20h12M18 26h8" stroke="#d4d4d8" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    <p>Sin evaluaciones aún</p>
+                    <span>Los operativos pueden evaluar desde su panel</span>
+                </div>
             )}
         </div>
     )
